@@ -1,0 +1,116 @@
+.card-achievment {
+  width: 300px;
+  height: auto;
+  margin-left: 0.5rem;
+  border-radius: 4px;
+}
+
+.clash-card__image {
+  position: relative;
+  height: 150px;
+  margin-bottom: 5px;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+}
+
+.clash-card__image--barbarian {
+  /* background: url('https://s3-us-west-2.amazonaws.com/s.cdpn.io/195612/barbarian-bg.jpg'); */
+  img {
+    width: 200px;
+    position: absolute;
+    top: 0px;
+    left: 50px;
+  }
+}
+
+.container-card {
+  /* width: 100%; */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-top: 25px;
+}
+
+.level {
+  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 3px;
+}
+
+.title {
+  font-size: 26px;
+  color: white;
+  font-weight: 900;
+  margin-bottom: 5px;
+}
+
+.description {
+  text-align: center;
+  font-size: 14px;
+  padding: 20px;
+  margin-bottom: 10px;
+  color: hsl(var(--muted-foreground));
+}
+
+.container-stats {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+  height: 60px;
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+
+.stats-flex {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.5s ease;
+  width: 100%;
+}
+
+.stats-flex:hover {
+  transform: scale(1.05);
+  cursor: pointer;
+}
+
+.description-stats {
+  font-size: 12px;
+}
+
+.vertical-line {
+  width: 1px;
+  height: 100%; /* Matches the height of the parent container */
+  background-color: hsl(var(--primary)); /* Adjust line color */
+  filter: brightness(80%);
+}
+
+.number {
+  margin-top: 5px;
+  font-weight: 600;
+}
+
+.description-stats {
+  margin-bottom: 5px;
+  font-weight: 400;
+}
+
+.icon-stats {
+  opacity: 0;
+  position: absolute;
+  top: 0;
+  right: 10px;
+  transform: translateY(5px); /* Start slightly below */
+  transition:
+    opacity 0.5s ease,
+    transform 0.5s ease; /* Smooth appearance */
+}
+
+.stats-flex:hover .icon-stats {
+  opacity: 1; /* Fully visible on hover */
+  transform: translateY(0); /* Moves to its original position */
+}

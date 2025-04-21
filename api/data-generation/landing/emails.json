@@ -1,0 +1,244 @@
+{
+  "emails": [
+    {
+      "category": "Client Communication",
+      "summary": "Confirming a client appointment.",
+      "email": {
+        "subject": "Appointment Confirmation for October 12th",
+        "body": "Hi David,<br><br>Just confirming our appointment on October 12th at 11 AM.<br><br>Let me know if anything changes on your end.<br><br>Best regards,<br>James Miller",
+        "from": "james.miller@globalenterprises.com",
+        "date": "2024-09-30T14:10:00Z"
+      }
+    },
+    {
+      "category": "Internal Team Communication",
+      "summary": "Request for weekly team meeting agenda.",
+      "email": {
+        "subject": "Weekly Team Meeting Agenda",
+        "body": "Hi Team,<br><br>Please send any topics you’d like to cover in our team meeting on Thursday by tomorrow afternoon.<br><br>Looking forward to catching up.<br><br>Thanks,<br>Susan Parker",
+        "from": "susan.parker@globalenterprises.com",
+        "date": "2024-09-28T15:20:00Z"
+      }
+    },
+    {
+      "category": "Vendor Communication",
+      "summary": "Requesting a quote for office supplies.",
+      "email": {
+        "subject": "Request for Office Supplies Quote",
+        "body": "Hi Maria,<br><br>Could you please send me a quote for the following office supplies:<br><br>1. 50 boxes of A4 paper<br>2. 20 ink cartridges<br>3. 10 ergonomic chairs<br><br>Looking forward to your response.<br><br>Best regards,<br>Tom Harris",
+        "from": "tom.harris@globalenterprises.com",
+        "date": "2024-09-29T09:10:00Z"
+      }
+    },
+    {
+      "category": "Client Communication",
+      "summary": "Following up on a project proposal.",
+      "email": {
+        "subject": "Follow-Up on Project Proposal",
+        "body": "Hi Susan,<br><br>I just wanted to check in on the project proposal we submitted last week.<br><br>If you have any questions or need further information, feel free to reach out.<br><br>Best regards,<br>Alice Green",
+        "from": "alice.green@globalenterprises.com",
+        "date": "2024-09-30T11:45:00Z"
+      }
+    },
+    {
+      "category": "Internal Team Communication",
+      "summary": "Sending updated meeting notes to the team.",
+      "email": {
+        "subject": "Updated Meeting Notes - September 30th",
+        "body": "Hi All,<br><br>Attached are the updated meeting notes from today’s discussion. Please review and let me know if I missed anything.<br><br>Thanks,<br>Rachel Adams",
+        "from": "rachel.adams@globalenterprises.com",
+        "date": "2024-09-30T16:30:00Z"
+      }
+    },
+    {
+      "category": "Management Reporting",
+      "summary": "Reporting monthly performance to upper management.",
+      "email": {
+        "subject": "Monthly Performance Report - September",
+        "body": "Hi Anna,<br><br>Attached is the performance report for September, including the key metrics and areas of improvement.<br><br>Please let me know if you need any clarification.<br><br>Best,<br>Chris Morgan",
+        "from": "chris.morgan@globalenterprises.com",
+        "date": "2024-09-30T14:00:00Z"
+      }
+    },
+    {
+      "category": "Event Planning",
+      "summary": "Scheduling a corporate team-building event.",
+      "email": {
+        "subject": "Team-Building Event Planning",
+        "body": "Hi All,<br><br>I’m planning our next team-building event and would love your input on the date and activity. Please send your availability for the second week of November.<br><br>Best,<br>Laura Simmons",
+        "from": "laura.simmons@globalenterprises.com",
+        "date": "2024-09-29T13:45:00Z"
+      }
+    },
+    {
+      "category": "Vendor Communication",
+      "summary": "Inquiring about delivery delays.",
+      "email": {
+        "subject": "Follow-Up on Delayed Delivery",
+        "body": "Hi Tom,<br><br>I’m following up on the delivery of our latest order. Could you provide an updated timeline for when we can expect it?<br><br>Thanks for your help.<br><br>Best regards,<br>Robert Taylor",
+        "from": "robert.taylor@globalenterprises.com",
+        "date": "2024-09-28T10:25:00Z"
+      }
+    },
+    {
+      "category": "Management Reporting",
+      "summary": "Providing updates on an ongoing project.",
+      "email": {
+        "subject": "Project Update: Office Renovation",
+        "body": "Hi Anna,<br><br>The office renovation project is progressing as planned. We’re currently in the final phase, with completion expected by October 15th.<br><br>I’ll keep you updated on any further developments.<br><br>Best,<br>Emma Brooks",
+        "from": "emma.brooks@globalenterprises.com",
+        "date": "2024-09-29T12:00:00Z"
+      }
+    },
+    {
+      "category": "Client Communication",
+      "summary": "Answering a client’s question about invoicing.",
+      "email": {
+        "subject": "Re: Invoice for August",
+        "body": "Hi Alice,<br><br>Regarding your question about the August invoice, I’ve attached a detailed breakdown for your review.<br><br>Let me know if anything else is unclear.<br><br>Best regards,<br>Mark Lewis",
+        "from": "mark.lewis@globalenterprises.com",
+        "date": "2024-09-28T14:45:00Z"
+      }
+    },
+    {
+      "category": "Event Planning",
+      "summary": "Finalizing event details with a venue.",
+      "email": {
+        "subject": "Event Details for October 25th",
+        "body": "Hi Karen,<br><br>Just confirming the venue and catering for our event on October 25th. Please confirm all the details are set.<br><br>Thanks again for your help.<br><br>Best regards,<br>Linda James",
+        "from": "linda.james@globalenterprises.com",
+        "date": "2024-09-27T09:30:00Z"
+      }
+    },
+    {
+      "category": "Internal Team Communication",
+      "summary": "Reminding the team about an upcoming deadline.",
+      "email": {
+        "subject": "Reminder: Report Submission Deadline",
+        "body": "Hi Team,<br><br>This is just a reminder that the monthly reports are due by the end of the day on Thursday.<br><br>Thanks for your cooperation.<br><br>Best regards,<br>Karen Robinson",
+        "from": "karen.robinson@globalenterprises.com",
+        "date": "2024-09-29T08:30:00Z"
+      }
+    },
+    {
+      "category": "Vendor Communication",
+      "summary": "Requesting information on service contract renewal.",
+      "email": {
+        "subject": "Service Contract Renewal Inquiry",
+        "body": "Hi Sarah,<br><brOur office service contract is set to expire in November. Could you send over the renewal options at your earliest convenience?<br><br>Thanks,<br>Peter Anderson",
+        "from": "peter.anderson@globalenterprises.com",
+        "date": "2024-09-28T12:10:00Z"
+      }
+    },
+    {
+      "category": "Management Reporting",
+      "summary": "Providing a financial update to management.",
+      "email": {
+        "subject": "Financial Update: Q3 Review",
+        "body": "Hi Anna,<br><br>Here is the financial update for Q3. We’ve met our revenue goals, but we should monitor expenses closely next quarter.<br><br>Let me know if you’d like a detailed breakdown.<br><br>Best,<br>Daniel Clark",
+        "from": "daniel.clark@globalenterprises.com",
+        "date": "2024-09-29T15:30:00Z"
+      }
+    },
+    {
+      "category": "Client Communication",
+      "summary": "Following up with a client about feedback on a recent project.",
+      "email": {
+        "subject": "Request for Feedback on Project",
+        "body": "Hi Emily,<br><br>We’d love to hear your feedback on the project we completed last week. Please let us know what went well and where we can improve.<br><br>Thanks for your input!<br><br>Best regards,<br>John Davis",
+        "from": "john.davis@globalenterprises.com",
+        "date": "2024-09-28T16:15:00Z"
+      }
+    },
+    {
+      "category": "Event Planning",
+      "summary": "Confirming the catering service for an event.",
+      "email": {
+        "subject": "Catering Confirmation for October Event",
+        "body": "Hi Jenny,<br><br>Just wanted to confirm the catering for the October 25th event. Please provide the final menu details.<br><br>Best regards,<br>Julie Wilson",
+        "from": "julie.wilson@globalenterprises.com",
+        "date": "2024-09-26T14:50:00Z"
+      }
+    },
+    {
+      "category": "Vendor Communication",
+      "summary": "Following up on a maintenance request.",
+      "email": {
+        "subject": "Follow-Up on Maintenance Request",
+        "body": "Hi Robert,<br><br>Can you provide an update on the maintenance request for our HVAC system? We’ve been waiting for confirmation of the repair date.<br><br>Thanks for your help.<br><br>Best regards,<br>Michael Turner",
+        "from": "michael.turner@globalenterprises.com",
+        "date": "2024-09-25T10:20:00Z"
+      }
+    },
+    {
+      "category": "Client Communication",
+      "summary": "Sending a thank you note to a client.",
+      "email": {
+        "subject": "Thank You for Your Business",
+        "body": "Hi Clara,<br><br>Thank you for choosing us for your recent project. We appreciate your trust in our team, and we hope to work with you again soon.<br><br>Best regards,<br>Olivia Baker",
+        "from": "olivia.baker@globalenterprises.com",
+        "date": "2024-09-26T11:35:00Z"
+      }
+    },
+    {
+      "category": "Internal Team Communication",
+      "summary": "Coordinating team schedules for a meeting.",
+      "email": {
+        "subject": "Meeting Availability",
+        "body": "Hi Team,<br><br>Please provide your availability for a meeting next Wednesday so we can finalize the time.<br><br>Thanks,<br>Benjamin Scott",
+        "from": "benjamin.scott@globalenterprises.com",
+        "date": "2024-09-27T09:45:00Z"
+      }
+    },
+    {
+      "category": "Management Reporting",
+      "summary": "Sending an office update to management.",
+      "email": {
+        "subject": "Office Update: Equipment Replacement",
+        "body": "Hi Anna,<br><br>We’ve completed the replacement of all outdated equipment. Everything is running smoothly, and I’ll monitor the progress.<br><br>Let me know if you need further information.<br><br>Best,<br>Jessica Clark",
+        "from": "jessica.clark@globalenterprises.com",
+        "date": "2024-09-28T12:45:00Z"
+      }
+    },
+    {
+      "category": "Vendor Communication",
+      "summary": "Requesting a meeting with a service provider.",
+      "email": {
+        "subject": "Request for Meeting to Discuss New Services",
+        "body": "Hi Paul,<br><br>I’d like to set up a meeting to discuss the new services your company is offering and how they might benefit our office.<br><br>Please suggest some dates when you’re available.<br><br>Best regards,<br>David Harris",
+        "from": "david.harris@globalenterprises.com",
+        "date": "2024-09-27T10:30:00Z"
+      }
+    },
+    {
+      "category": "Event Planning",
+      "summary": "Finalizing the guest list for an upcoming event.",
+      "email": {
+        "subject": "Guest List for October Event",
+        "body": "Hi Team,<br><br>Just a quick reminder to send me your final guest list for the October event by Friday.<br><br>Thanks,<br>Stephanie Reed",
+        "from": "stephanie.reed@globalenterprises.com",
+        "date": "2024-09-26T13:00:00Z"
+      }
+    },
+    {
+      "category": "Client Communication",
+      "summary": "Providing a service update to a client.",
+      "email": {
+        "subject": "Service Update for October",
+        "body": "Hi Mike,<br><br>Just providing a quick update on our services for October. We’re on track to meet the agreed deadlines, and I’ll keep you informed of any changes.<br><br>Best regards,<br>George Parker",
+        "from": "george.parker@globalenterprises.com",
+        "date": "2024-09-25T15:10:00Z"
+      }
+    },
+    {
+      "category": "Vendor Communication",
+      "summary": "Requesting a refund for a defective product.",
+      "email": {
+        "subject": "Refund Request for Defective Product",
+        "body": "Hi Support Team,<br><br>We received a defective product from our recent order. Can you please initiate a refund or replacement as soon as possible?<br><br>Thank you,<br>William Carter",
+        "from": "william.carter@globalenterprises.com",
+        "date": "2024-09-28T11:25:00Z"
+      }
+    }
+  ]
+}

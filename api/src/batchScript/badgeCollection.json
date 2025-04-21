@@ -1,0 +1,146 @@
+[
+  {
+    "_id": {
+      "$oid": "677d23ed8be65868a5cf10b2"
+    },
+    "metric": "taskCompletion",
+    "metricStep": 1,
+    "toastMessage": "First task done. Is this the start of your productivity era?",
+    "badgeName": "Task Trailblazer",
+    "badgeDetails": "#66BB6A",
+    "icon": "ion:checkmark-done-outline",
+    "iconImage": "taskCompletion1.png"
+  },
+  {
+    "_id": {
+      "$oid": "677d23ed8be65868a5cf10b8"
+    },
+    "metric": "speedTasks.lastThreeUnder20Minutes",
+    "metricStep": 1,
+    "toastMessage": "Speedster alert! 3 tasks in 20 minutes. What's the hurry, rockstar?",
+    "badgeName": "Speedster",
+    "badgeDetails": "#BA979D",
+    "icon": "mdi:clock-outline",
+    "iconImage": "speedTasks1.png"
+  },
+  {
+    "_id": {
+      "$oid": "677d23ed8be65868a5cf10bc"
+    },
+    "metric": "emailCategorization",
+    "metricStep": 100,
+    "toastMessage": "100 emails sorted! Who knew folders could bring so much joy?",
+    "badgeName": "System Master",
+    "badgeDetails": "#8F4B2E",
+    "icon": "mdi:clock-outline",
+    "iconImage": "emailCategorisation2.png"
+  },
+  {
+    "_id": {
+      "$oid": "677d23ed8be65868a5cf10bd"
+    },
+    "metric": "emailCategorization",
+    "metricStep": 500,
+    "toastMessage": "500 emails filed away. Is this peak productivity or sorcery?",
+    "badgeName": "Filing Guru",
+    "badgeDetails": "#7E3110",
+    "icon": "mdi:clock-outline",
+    "iconImage": "emailCategorisation3.png"
+  },
+  {
+    "_id": {
+      "$oid": "677d23ed8be65868a5cf10b3"
+    },
+    "metric": "taskCompletion",
+    "metricStep": 50,
+    "toastMessage": "50 tasks down. Is your cape in the mail yet, Task Titan?",
+    "badgeName": "Task titan",
+    "badgeDetails": "#66BB6A",
+    "icon": "ion:checkmark-done-outline",
+    "iconImage": "taskCompletion50.png"
+  },
+  {
+    "_id": {
+      "$oid": "677d23ed8be65868a5cf10b6"
+    },
+    "metric": "productivityStreak",
+    "metricStep": 14,
+    "toastMessage": "14 days straight. Should we call you the streak whisperer?",
+    "badgeName": "Momentum Maker",
+    "badgeDetails": "#175651",
+    "icon": "mdi:flame",
+    "iconImage": "productivityStreak14.png"
+  },
+  {
+    "_id": {
+      "$oid": "677d23ed8be65868a5cf10b4"
+    },
+    "metric": "taskCompletion",
+    "metricStep": 100,
+    "toastMessage": "100 tasks done. Inbox conqueror, meet your crown.",
+    "badgeName": "Inbox Conqueror",
+    "badgeDetails": "#66BB6A",
+    "icon": "ion:checkmark-done-outline",
+    "iconImage": "taskCompletion100.png"
+  },
+  {
+    "_id": {
+      "$oid": "677d23ed8be65868a5cf10b5"
+    },
+    "metric": "productivityStreak",
+    "metricStep": 7,
+    "toastMessage": "You're on fire! 7-day streak. Who knew consistency could look this good?",
+    "badgeName": "Streak Igniter",
+    "badgeDetails": "#2C6561",
+    "icon": "mdi:flame",
+    "iconImage": "productivityStreak7.png"
+  },
+  {
+    "_id": {
+      "$oid": "677d23ed8be65868a5cf10b9"
+    },
+    "metric": "speedTasks.lastFiveUnder40Minutes",
+    "metricStep": 1,
+    "toastMessage": "5 tasks in 30 minutes. Are you secretly competing with the clock?",
+    "badgeName": "Efficiency Expert",
+    "badgeDetails": "#742E3B",
+    "icon": "mdi:clock-outline",
+    "iconImage": "speedTasks2.png"
+  },
+  {
+    "_id": {
+      "$oid": "677d23ed8be65868a5cf10ba"
+    },
+    "metric": "speedTasks.lastEightUnder60Minutes",
+    "metricStep": 1,
+    "toastMessage": "8 tasks in 40 minutes! Did someone say productivity wizard?",
+    "badgeName": "Golden Sprint",
+    "badgeDetails": "#570211",
+    "icon": "mdi:clock-outline",
+    "iconImage": "speedTasks3.png"
+  },
+  {
+    "_id": {
+      "$oid": "677d23ed8be65868a5cf10b7"
+    },
+    "metric": "productivityStreak",
+    "metricStep": 30,
+    "toastMessage": "0 days of streaks! Is this dedication or obsession? Either way, it's impressive.",
+    "badgeName": "Streak Legend",
+    "badgeDetails": "#004540",
+    "icon": "mdi:flame",
+    "iconImage": "productivityStreak30.png"
+  },
+  {
+    "_id": {
+      "$oid": "677d23ed8be65868a5cf10bb"
+    },
+    "metric": "emailCategorization",
+    "metricStep": 50,
+    "toastMessage": "50 emails organized. Does this mean you're officially an organization wizard?",
+    "badgeName": "Categorization Prodigy",
+    "badgeDetails": "#9F654C",
+    "icon": "mdi:clock-outline",
+    "iconImage": "emailCategorisation1.png"
+  }
+]

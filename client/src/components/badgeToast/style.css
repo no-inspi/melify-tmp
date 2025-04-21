@@ -1,0 +1,52 @@
+.hexagon {
+  position: relative;
+  height: 40px; /* adjust to control the size  */
+  width: 40px; /* adjust to control the size  */
+  border-radius: 30%;
+  /* background: ; */
+  transition: 0.5s ease;
+  z-index: 1;
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
+}
+
+.hexagon:hover {
+  transform: scale(1.05);
+}
+
+.circle {
+  top: 7px;
+  width: 70%;
+  height: 70%;
+  position: relative;
+  background: #fff;
+  z-index: 10;
+  border-radius: 30%;
+  display: flex; /* Enable flexbox */
+  align-items: center; /* Center items vertically */
+  justify-content: center; /* Center items horizontally */
+  margin: auto; /* Center the circle itself if needed */
+}
+
+.ribbon {
+  position: absolute; /* Make sure it's positioned independently */
+  bottom: 6px; /* Adjust positioning above the hexagon */
+  left: 50%;
+  transform: translateX(-50%);
+  border-radius: 4px;
+  padding: 2px 5px;
+  width: auto;
+  max-width: 110%;
+  /* min-width: 80px; */
+  z-index: 11; /* Ensure it appears above the hexagon */
+  color: #fff;
+  height: auto;
+  font-size: 30%;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.27);
+  text-shadow: 0 2px 2px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(to bottom right, #555 0%, #333 100%);
+  cursor: default;
+  /* Add ellipsis for overflow text */
+  white-space: nowrap; /* Prevent line breaks */
+  overflow: hidden; /* Hide overflowing content */
+  text-overflow: ellipsis; /* Add "..." to indicate overflow */
+}
