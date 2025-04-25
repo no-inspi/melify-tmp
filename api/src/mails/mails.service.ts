@@ -3,7 +3,6 @@ import {
   UnauthorizedException,
   InternalServerErrorException,
   NotFoundException,
-  OnModuleInit,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { PipelineStage } from 'mongoose';
@@ -40,10 +39,9 @@ import {
 
 import { UserHelpers } from 'src/users/helpers/user.helpers';
 import { ProfileType } from 'src/users/schemas/profileType.schema';
-import * as request from 'supertest';
 
 @Injectable()
-export class MailsService implements OnModuleInit {
+export class MailsService {
   constructor(
     @InjectModel(Email.name) private emailModel: Model<Email>,
     @InjectModel(Thread.name) private threadModel: Model<Thread>,
@@ -57,57 +55,6 @@ export class MailsService implements OnModuleInit {
     private readonly authService: AuthService,
     private readonly userHelpers: UserHelpers,
   ) {}
-
-  async onModuleInit() {
-    this.setupEmailChangeStream();
-  }
-
-  // Setup MongoDB Change Stream for email collection
-  async setupEmailChangeStream() {
-    const changeStream = this.emailModel.watch();
-
-    // Listen for changes in the collection
-    // changeStream.on('change', async (change) => {
-    //   console.log('Change detected in emails collection:', change);
-
-    //   if (change.operationType === 'insert') {
-    //     // Handle new email
-    //     const newEmail = change.fullDocument;
-    //     this.mailsGateway.sendMailUpdateToUser(
-    //       'userId', // Assuming each email has a userId field
-    //       newEmail,
-    //       newEmail._id,
-    //     );
-    //   } else if (change.operationType === 'update') {
-    //     console.log('Email updated:', change.documentKey._id);
-    //     const email = await this.emailModel
-    //       .findOne({ _id: change.documentKey._id })
-    //       .exec();
-    //     const user = await this.userModel.findOne({ email: email.deliveredTo });
-    //     const token = await this.tokenModel.findOne({ userId: user._id });
-    //     console.log('email:', email.deliveredTo);
-    //     console.log('token:', token);
-
-    //     if (!token) {
-    //       return;
-    //     }
-
-    //     const userId = await this.authService.getUserIdFromRequest({
-    //       cookies: { auth_tokens: JSON.stringify(token) },
-    //     });
-
-    //     console.log('userId: ', userId);
-
-    //     // Handle email update
-    //     const updatedThreadId = email.threadId;
-    //     this.mailsGateway.sendMailUpdateToUser(
-    //       userId, // Assuming each email has a userId field
-    //       change.updateDescription.updatedFields,
-    //       updatedThreadId,
-    //     );
-    //   }
-    // });
-  }
 
   async fetchLabels(userEmail: string): Promise<Label[]> {
     const labels: Label[] = [
@@ -209,10 +156,7 @@ export class MailsService implements OnModuleInit {
     searching: string;
   }): Promise<any> {
     try {
-      console.log('fetch emails', labelIds, searchWords);
       const parsedObject = parseSearchString(searchWords);
-
-      console.log('parsedObject', parsedObject);
 
       const { query, queryThread } = await getMongooseQueryFromObject(
         labelIds,
@@ -234,10 +178,6 @@ export class MailsService implements OnModuleInit {
         delete query.category;
       }
 
-      console.log('query', query);
-
-      console.log('threadCategoryToQuery', threadCategoryToQuery);
-
       const threadMatchCommand = [];
 
       if (searching && queryThread['statusInput'] !== '') {
@@ -258,8 +198,6 @@ export class MailsService implements OnModuleInit {
           },
         });
       }
-
-      console.log('threadMatchCommand', threadMatchCommand);
 
       const pipeline: PipelineStage[] = [
         { $match: query }, // Initial match on primary query fields
@@ -376,10 +314,7 @@ export class MailsService implements OnModuleInit {
     searching: string;
   }): Promise<any> {
     try {
-      console.log('fetch emails', labelIds, searchWords);
       const parsedObject = parseSearchString(searchWords);
-
-      console.log('parsedObject', parsedObject);
 
       const { query, queryThread } = await getMongooseQueryFromObject(
         labelIds,
@@ -388,7 +323,6 @@ export class MailsService implements OnModuleInit {
         searching,
       );
 
-      console.log('query', query);
       if (labelIds !== 'draft') {
         query.labelIds.$in.push('SENT');
       }
@@ -509,6 +443,8 @@ export class MailsService implements OnModuleInit {
         deliveredTo: deliveredTo,
       });
 
+      console.log('unread emails', unreadEmails);
+
       if (unreadEmails.length === 0) {
         return { message: 'No unread emails found in the thread.' };
       }
@@ -523,6 +459,13 @@ export class MailsService implements OnModuleInit {
             removeLabelIds: ['UNREAD'],
           },
         });
+
+        // Update in MongoDB database
+        await this.emailModel.findOneAndUpdate(
+          { messageId: email.messageId },
+          { $pull: { labelIds: 'UNREAD' } }, // Remove 'UNREAD' from labelIds array
+          { new: true }, // Return the updated document
+        );
       }
 
       return {
@@ -544,7 +487,6 @@ export class MailsService implements OnModuleInit {
     labelToUpdate: string[],
     add: boolean,
   ): Promise<any> {
-    console.log('labelToUpdate', labelToUpdate);
     try {
       // const email = await this.emailModel.findOne({
       //   messageId: emailId,
@@ -667,7 +609,6 @@ export class MailsService implements OnModuleInit {
 
   async addMail(body: any, oauth2Client: any): Promise<any> {
     try {
-      console.log(body);
       const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
 
       let additionnalHtmlContent = '';
@@ -716,8 +657,6 @@ export class MailsService implements OnModuleInit {
         userId: 'me',
         id: body.draftId,
       });
-
-      console.log('status:', response);
 
       if (response.status !== 200 && response.status !== 204) {
         throw new InternalServerErrorException('Failed to delete email draft.');
@@ -1054,8 +993,6 @@ export class MailsService implements OnModuleInit {
                 email.includes(parsedSearchString.from.trim()),
               );
 
-              console.log(filteredEmails);
-
               const resultArray: any = [];
 
               for (const [index, email] of filteredEmails.entries()) {
@@ -1095,7 +1032,6 @@ export class MailsService implements OnModuleInit {
     _id: string,
     category: string,
   ): Promise<{ status: string; threadId: string }> {
-    console.log('category:', category);
     if (!_id) {
       return {
         status: 'Email ID (_id) is required for updating.',
@@ -1139,7 +1075,6 @@ export class MailsService implements OnModuleInit {
     threadId: string,
     category: string,
   ): Promise<{ status: string }> {
-    console.log('category:', category);
     if (!threadId) {
       return {
         status: 'Email threadId is required for updating.',
@@ -1179,7 +1114,6 @@ export class MailsService implements OnModuleInit {
     userInteractions: any[];
     newBadgesUnlocked: any[];
   }> {
-    console.log('category:', category, statusInput);
     if (!threadId) {
       return {
         status: 'Email threadId is required for updating.',
@@ -1307,13 +1241,6 @@ export class MailsService implements OnModuleInit {
 
         userInteractions = await this.userHelpers.watchAchievementsCourtTerme(
           user._id,
-        );
-
-        console.log(
-          'userInteractions',
-          userInteractions,
-          newBadgesUnlocked,
-          badgesTmp,
         );
       }
 

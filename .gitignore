@@ -42,3 +42,6 @@ yarn-error.log*
 gcp/process_mails/process_mails_last_30_days.log
 gcp/process_mails/process_mails_last_30_days.log
 gcp/process_mails/running_pids.txt
+
+docker-compose.yaml
+data/

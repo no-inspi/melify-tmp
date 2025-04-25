@@ -2,14 +2,13 @@
   "name": "melify_app",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start:frontend": "cd simple-cra-js && npm start",
+    "start:frontend": "cd client && npm run dev",
     "start:backend": "cd api && npm run start:dev",
     "start": "concurrently \"npm run start:frontend\" \"npm run start:backend\"",
     "install": "concurrently \"npm run install:frontend\" \"npm run install:backend\"",
-    "install:frontend": "cd simple-cra-js && npm install",
+    "install:frontend": "cd client && npm install",
     "install:backend": "cd api && npm install"
   },
   "author": "",

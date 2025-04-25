@@ -33,7 +33,7 @@ import { TiptapModule } from './tiptap/tiptap.module';
         console.log(`MongoDB connecting to: ${mongodbUrl}`);
 
         return {
-          uri: mongodbUrl,
+          uri: configService.get<string>('MONGODB_URI'),
           // Add any additional Mongoose connection options here
           useNewUrlParser: true,
           useUnifiedTopology: true,

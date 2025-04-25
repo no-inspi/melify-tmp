@@ -3,7 +3,7 @@ import './style.css';
 import { bouncy } from 'ldrs';
 import { useChat } from 'ai/react';
 import Link from '@tiptap/extension-link';
-import Ai from '@tiptap-pro/extension-ai';
+// import Ai from '@tiptap-pro/extension-ai';
 import { useState, useEffect } from 'react';
 import StarterKit from '@tiptap/starter-kit';
 import ListItem from '@tiptap/extension-list-item';
@@ -58,12 +58,12 @@ export function Editor({ content, handleChangeContent, jwtToken }) {
     }),
     Link.configure({ openOnClick: false }),
 
-    Ai.configure({
-      appId: '7meg5rgk', // Your Tiptap appId
-      token: jwtToken, // Dynamic JWT token
-      autocompletion: true,
-      onLoading: () => console.log('AI is loading...'),
-    }),
+    // Ai.configure({
+    //   appId: '7meg5rgk', // Your Tiptap appId
+    //   token: jwtToken, // Dynamic JWT token
+    //   autocompletion: true,
+    //   onLoading: () => console.log('AI is loading...'),
+    // }),
   ]; // Filter out `null` if jwtToken is not ready
 
   // Initialize the editor instance

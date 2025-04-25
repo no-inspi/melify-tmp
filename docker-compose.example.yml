@@ -1,0 +1,83 @@
+version: "3.8"
+
+services:
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    ports:
+      - "3030:3030"
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_SERVER_URL=http://localhost:8080
+      - NEXT_PUBLIC_ASSET_URL=http://localhost:8080
+      - NEXT_PUBLIC_CLIENT_ID=
+      - NEXT_CF_URL=
+      - NEXT_PUBLIC_USE_TIPTAP=false
+      - OPENAI_API_KEY=
+      - NEXT_PUBLIC_LAST_30_DAYS_URL=http://localhost:8082
+      - NEXT_PUBLIC_RETRIEVE_EMAIL_URL=http://localhost:8083
+    depends_on:
+      - api
+      - cloud-functions
+
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./api:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - PORT=8080
+      - OPENAI_API_KEY=
+      - FRONT_URL=http://localhost:3030
+      - ENVIRONMENT_URL=http://localhost:8080
+      - GOOGLE_CLIENT_ID=
+      - GOOGLE_CLIENT_SECRET=
+      # Connect to MongoDB container using internal Docker network
+      - MONGODB_URI=mongodb://root:example@mongo:27017/melifydevelopment?authSource=admin
+      - LAST30DAYS=
+      - RETRIEVEEMAILBYLABELS=
+      - TOPICNAME=
+    depends_on:
+      - mongo
+      - cloud-functions
+
+  mongo:
+    image: mongo:6
+    ports:
+      - "27018:27017" # Map to 27018 on host to avoid conflicts with local MongoDB
+    volumes:
+      - ./data/mongo:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=example
+    command: mongod --bind_ip_all
+
+  cloud-functions:
+    build:
+      context: ./gcp
+      dockerfile: Dockerfile
+    ports:
+      - "8082:8082"
+      - "8083:8083"
+    volumes:
+      - ./gcp:/app
+    environment:
+      - DATABASE_NAME=melifydevelopment
+      - URI_MONGODB=mongodb://root:example@mongo:27017/melifydevelopment?authSource=admin
+      # Add any other environment variables your cloud functions need
+    depends_on:
+      - mongo
+
+networks:
+  app-network:
+    name: melify-network
+    driver: bridge

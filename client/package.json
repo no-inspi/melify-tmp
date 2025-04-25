@@ -80,7 +80,6 @@
     "@sentry/react": "^8.37.1",
     "@sentry/tracing": "^7.114.0",
     "@tailwindcss/typography": "^0.5.15",
-    "@tiptap-pro/extension-ai": "^2.16.3",
     "@tiptap/extension-highlight": "^2.10.3",
     "@tiptap/extension-link": "^2.10.3",
     "@tiptap/extension-list-item": "^2.10.3",
