@@ -18,7 +18,6 @@ import { AuthService } from '../auth/auth.service';
 import { Email } from './schemas/emails.schema';
 import { Response } from 'express';
 import { MailsGateway } from './mails.gateway';
-import { OAuth2Client } from 'google-auth-library';
 
 @Controller('mails')
 export class MailsController {

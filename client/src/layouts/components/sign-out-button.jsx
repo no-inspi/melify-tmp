@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 
-import Button from '@mui/material/Button';
+// import Button from '@mui/material/Button';
+import { Button } from 'src/s/components/ui/button';
 
 import { useRouter } from 'src/routes/hooks';
 
@@ -26,7 +27,7 @@ export function SignOutButton({ onClose, ...other }) {
   }, [checkUserSession, onClose, router]);
 
   return (
-    <Button fullWidth variant="soft" size="large" color="error" onClick={handleLogout} {...other}>
+    <Button variant="destructive" onClick={handleLogout} className="rounded w-full">
       Logout
     </Button>
   );

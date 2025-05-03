@@ -13,7 +13,7 @@ NC='\033[0m' # No Color
 echo -e "${BLUE}Starting Multiple Google Cloud Functions Locally${NC}\n"
 
 # Base directory for all functions
-BASE_DIR="/Users/charlieapcher/Documents/GitHub/melify_app/gcp"
+BASE_DIR="/Users/charlieapcher/Documents/melify/melify-tmp/gcp"
 
 # Path to the .env file (placed in the same directory as this script)
 ENV_FILE="$(dirname "$0")/.env"
@@ -63,12 +63,14 @@ rm -f running_pids.txt
 # Run all functions in parallel
 run_function "process_mails" "last_30_days" "8082"
 run_function "process_mails" "retrieve_email_by_labels_entry_point" "8083" 
+run_function "transform_email" "transform_email_entry_point" "8084" 
 
 echo -e "\n${GREEN}All functions are now running in the background${NC}"
 echo -e "${BLUE}Function logs are being saved to respective log files${NC}"
 echo -e "${BLUE}To access a function, use the following URLs:${NC}"
 echo -e "  - last_30_days: ${GREEN}http://localhost:8082${NC}"
 echo -e "  - retrieve_email_by_labels_entry_point: ${GREEN}http://localhost:8083${NC}"
+echo -e "  - transform_email_entry_point: ${GREEN}http://localhost:8084${NC}"
 
 # Display active environment variables (for debugging)
 echo -e "\n${BLUE}Active environment variables:${NC}"

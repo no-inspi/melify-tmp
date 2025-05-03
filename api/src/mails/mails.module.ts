@@ -10,6 +10,7 @@ import { MailsService } from './mails.service';
 import { TemplateService } from 'src/templates/templates.service';
 import { Email, EmailSchema } from './schemas/emails.schema';
 import { User, UserSchema } from '../users/schemas/users.schema';
+import { Accounts, AccountsSchema } from '../users/schemas/accounts.schema';
 import {
   ProfileType,
   ProfileTypeSchema,
@@ -29,6 +30,9 @@ import { UsersModule } from '../users/users.module'; // Import UsersModule
   imports: [
     MongooseModule.forFeature([{ name: Email.name, schema: EmailSchema }]),
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
+    MongooseModule.forFeature([
+      { name: Accounts.name, schema: AccountsSchema },
+    ]),
     MongooseModule.forFeature([{ name: Token.name, schema: TokenSchema }]),
     MongooseModule.forFeature([
       { name: ProfileType.name, schema: ProfileTypeSchema },

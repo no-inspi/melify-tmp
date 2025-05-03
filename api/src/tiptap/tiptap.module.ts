@@ -4,6 +4,6 @@ import { TiptapController } from './tiptap.controller';
 
 @Module({
   providers: [TiptapService],
-  controllers: [TiptapController]
+  controllers: [TiptapController],
 })
 export class TiptapModule {}

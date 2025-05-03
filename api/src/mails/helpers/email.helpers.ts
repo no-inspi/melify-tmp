@@ -4,6 +4,7 @@ import { searchKeys } from 'src/utils/constants';
 import { promises as fs } from 'fs'; // Use fs.promises for reading the file
 import * as path from 'path'; // For constructing the path to the image
 import * as cheerio from 'cheerio'; // For parsing the HTML content
+import axios from 'axios';
 
 export async function createMessage(
   from: string,
@@ -174,7 +175,9 @@ export async function sendEmail(
 
     const sentEmail = await gmail.users.messages.send(emailToSend);
     console.log(`Email sent: ${sentEmail.data.id}`);
-    console.log('email sent: ' + sentEmail.data);
+
+    // Properly log the full response object
+    console.log('Full response:', JSON.stringify(sentEmail, null, 2));
     return sentEmail.data;
   } catch (error) {
     console.error('Failed to send email:', error);
@@ -426,14 +429,11 @@ export function getLastNonMatchingFromEmail(
   emails: any[],
   fromEmail: string,
 ): string {
-  console.log('test: ', emails, fromEmail);
   // Filter out emails that are from 'fromEmail'
   const filteredEmails = emails.filter((email) => {
     const emailAddress = extractEmailToString(email.from);
     return emailAddress !== fromEmail;
   });
-
-  console.log('filtered email', filteredEmails);
 
   // Get the last email from the filtered list
   if (filteredEmails.length > 0) {
@@ -466,4 +466,59 @@ export function extractNewContent(html: string): string {
 
   // Return the remaining HTML content
   return $.html();
+}
+
+/**
+ * Helper function to send user email and message ID to a local cloud function
+ *
+ * @param userEmail - The email of the user
+ * @param messageId - The Gmail message ID
+ * @param cloudFunctionUrl - Optional: Override the default cloud function URL
+ * @returns Promise with the cloud function response
+ */
+export async function transformEmails(
+  userEmail: string,
+  messageId: string,
+  cloudFunctionUrl: string = 'http://127.0.0.1:8084/transform_email',
+): Promise<any> {
+  try {
+    // Prepare the request data
+    const requestData = {
+      user_email: userEmail,
+      messageId,
+    };
+
+    // Log the request
+    console.log(
+      `Sending request to cloud function with data:`,
+      JSON.stringify(requestData, null, 2),
+    );
+
+    // Make the POST request to the cloud function using axios directly
+    const response = await axios.post(cloudFunctionUrl, requestData, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      // Optional: Set timeout to prevent hanging requests
+      timeout: 10000,
+    });
+
+    // Log successful response
+    console.log(
+      'Cloud function response:',
+      JSON.stringify(response.data, null, 2),
+    );
+
+    return response.data;
+  } catch (error) {
+    // Handle and log errors
+    console.error('Error in transformEmails:', error.message);
+
+    if (error.response) {
+      console.error('Response status:', error.response.status);
+      console.error('Response data:', error.response.data);
+    }
+
+    throw new Error(`Failed to call cloud function: ${error.message}`);
+  }
 }

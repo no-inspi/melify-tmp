@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from '../users/schemas/users.schema';
+import { Accounts } from 'src/users/schemas/accounts.schema';
 import { Email } from '../mails/schemas/emails.schema';
 import * as moment from 'moment';
 
@@ -10,17 +11,18 @@ export class AdminService {
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<User>,
     @InjectModel(Email.name) private readonly emailModel: Model<Email>,
+    @InjectModel(Accounts.name) private readonly accountsModel: Model<Accounts>,
   ) {}
 
   async getNbEmailsPerDay(pastDays: number): Promise<any> {
-    const users = await this.userModel.find().exec();
-    const userEmailCounts = [];
+    const accounts = await this.accountsModel.find().exec();
+    const accountEmailCounts = [];
 
     const ninetyDaysAgo = new Date(Date.now() - pastDays * 24 * 60 * 60 * 1000);
 
-    for (const user of users) {
+    for (const account of accounts) {
       const emailRegex = new RegExp(
-        `\\b${user.email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`,
+        `\\b${account.email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`,
         'i',
       );
 
@@ -54,41 +56,43 @@ export class AdminService {
         { $sort: { date: 1 } },
       ]);
 
-      userEmailCounts.push({
-        user: user.email,
+      accountEmailCounts.push({
+        user: account.email,
         counts: emailCountsByDate,
       });
     }
 
-    const normalizedUserEmailCounts = userEmailCounts.map((userEmailCount) => {
-      const dateCounts = {};
-      userEmailCount.counts.forEach(({ date, email, count }) => {
-        const EMAIL = this.extractEmail(email);
-        if (!dateCounts[date]) {
-          dateCounts[date] = {};
-        }
-        if (!dateCounts[date][EMAIL]) {
-          dateCounts[date][EMAIL] = 0;
-        }
-        dateCounts[date][EMAIL] += count;
-      });
+    const normalizedAccountsEmailCounts = accountEmailCounts.map(
+      (accountEmailCount) => {
+        const dateCounts = {};
+        accountEmailCount.counts.forEach(({ date, email, count }) => {
+          const EMAIL = this.extractEmail(email);
+          if (!dateCounts[date]) {
+            dateCounts[date] = {};
+          }
+          if (!dateCounts[date][EMAIL]) {
+            dateCounts[date][EMAIL] = 0;
+          }
+          dateCounts[date][EMAIL] += count;
+        });
 
-      const counts = Object.entries(dateCounts).flatMap(([date, emails]) =>
-        Object.entries(emails).map(([email, count]) => ({
-          date,
-          email,
-          count,
-        })),
-      );
+        const counts = Object.entries(dateCounts).flatMap(([date, emails]) =>
+          Object.entries(emails).map(([email, count]) => ({
+            date,
+            email,
+            count,
+          })),
+        );
 
-      return {
-        user: userEmailCount.user,
-        counts,
-      };
-    });
+        return {
+          user: accountEmailCount.user,
+          counts,
+        };
+      },
+    );
 
     const { series, categories } = this.transformToSeriesFormat(
-      normalizedUserEmailCounts,
+      normalizedAccountsEmailCounts,
     );
     return { series, categories };
   }
@@ -208,11 +212,11 @@ export class AdminService {
   }
 
   async getUserDetails(): Promise<any> {
-    const users = await this.userModel.find().exec();
-    return users.map((user) => ({
-      email: user.email,
-      name: user.name,
-      lastconnection: user.lastConnection,
+    const accounts = await this.accountsModel.find().exec();
+    return accounts.map((account) => ({
+      email: account.email,
+      name: 'test',
+      lastconnection: account.lastConnection,
     }));
   }
 

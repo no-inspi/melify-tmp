@@ -1,12 +1,9 @@
-import {
-  Injectable,
-  BadRequestException,
-  InternalServerErrorException,
-} from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import axios from 'axios';
 import * as sanitizeHtml from 'sanitize-html';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const randomColor = require('randomcolor');
 
 import { Email } from '../mails/schemas/emails.schema'; // Adjust the path as necessary
@@ -150,11 +147,8 @@ export class AiService {
     );
 
     const jsonResponse = response.data.choices[0].message.content;
-    console.log(jsonResponse);
 
     let responseAiCategories = await parseAiResponseCategories(jsonResponse);
-
-    console.log(responseAiCategories);
 
     responseAiCategories = responseAiCategories.map((category) => {
       const randomColorGenerated = randomColor({

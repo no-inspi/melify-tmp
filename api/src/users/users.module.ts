@@ -3,6 +3,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 import { User, UserSchema } from './schemas/users.schema';
+import { Accounts, AccountsSchema } from './schemas/accounts.schema';
 import { ProfileType, ProfileTypeSchema } from './schemas/profileType.schema';
 import { Email, EmailSchema } from '../mails/schemas/emails.schema';
 
@@ -24,6 +25,9 @@ import { Badge, BadgeSchema } from './schemas/badge.schema';
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
+    MongooseModule.forFeature([
+      { name: Accounts.name, schema: AccountsSchema },
+    ]),
     MongooseModule.forFeature([{ name: Email.name, schema: EmailSchema }]),
     MongooseModule.forFeature([
       { name: ProfileType.name, schema: ProfileTypeSchema },

@@ -14,7 +14,7 @@ from googleapiclient.discovery import build
 import base64
 from typing import Dict, Any, List
 from email.utils import parsedate_to_datetime
-from utils import convert_to_iso8601_utc, parse_mistral_response, fetch_email
+from utils import convert_to_iso8601_utc, parse_mistral_response, fetch_email, refresh_access_token, get_user_by_email
 import sentry_sdk
 
 sentry_sdk.init(
@@ -125,16 +125,25 @@ def batch_last_30_days(request):
                 
             tokens_collection = db.tokens
             emails_collection = db.emails
+            accounts_collection = db.accounts
             
             data = request.get_json()
             
             user_email = data.get('user_email', "")
+            existing_account = accounts_collection.find_one({'email': user_email})
+    
+            # Check if account exists
+            if not existing_account:
+                print(f"No account found for email: {user_email}")
+                return None
+            
+            print(f"Existing account: {existing_account}")
 
             user = get_user_by_email(user_email, db)
 
             update_categories_from_user(user)
             #user = users_collection.find_one({'email': user_email})
-            user_tokens = tokens_collection.find_one({'userId': user['_id']})
+            user_tokens = tokens_collection.find_one({'accountId': existing_account['_id']})
             
             if not user_tokens:
                 return 'User tokens not found', 404
@@ -142,9 +151,9 @@ def batch_last_30_days(request):
             access_token = user_tokens.get('accessToken')
             refresh_token = user_tokens.get('refreshToken')
             
-            access_token, new_refresh_token = refresh_access_token(refresh_token)
+            access_token, new_refresh_token = refresh_access_token(refresh_token, client_id, client_secret)
             if new_refresh_token != refresh_token:
-                db.tokens.update_one({'userId': user['_id']}, {'$set': {'refreshToken': new_refresh_token}})
+                db.tokens.update_one({'accountId': existing_account['_id']}, {'$set': {'refreshToken': new_refresh_token}})
             
             token_data = {
                 "token": access_token,  # Your access token
@@ -205,42 +214,6 @@ def batch_last_30_days(request):
         sentry_sdk.capture_exception(e)
         print(f"Error in batch_last_30_days: {str(e)}")
         return {'status': 'error', 'message': str(e)}
-
-def is_access_token_valid(access_token):
-    # Check if token is valid by making a simple API call
-    response = requests.get('https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=' + access_token)
-    return response.status_code == 200
-
-def refresh_access_token(refresh_token):
-    data = {
-        'client_id': client_id,
-        'client_secret': client_secret,
-        'refresh_token': refresh_token,
-        'grant_type': 'refresh_token'
-    }
-    response = requests.post('https://oauth2.googleapis.com/token', data=data)
-    response_data = response.json()
-    return response_data.get('access_token'), response_data.get('refresh_token', refresh_token)
-
-def get_user_by_email(email, db):
-    users_collection = db.users
-    
-    pipeline = [
-        {"$match": {"email": email}},  # Match the user by email
-        {"$lookup": {
-            "from": "profiletypes",  # The collection to join with
-            "localField": "profileType",  # The field from the users collection
-            "foreignField": "_id",  # The field from the profileTypes collection
-            "as": "profileTypeInfo"  # The output array field which will contain the joined data
-        }},
-        {"$unwind": "$profileTypeInfo"},  # Optional: Deconstructs the array field from the output to promote its objects to the top level
-    ]
-    
-    result = users_collection.aggregate(pipeline)
-    
-     # Convert the result to a list and return
-    user_info = list(result)
-    return user_info[0] if user_info else None
 
 def update_categories_from_user(user):
     global PROMPT_CATEGORIES, CATEGORIES

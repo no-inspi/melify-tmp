@@ -3,8 +3,8 @@ import axios from 'axios';
 export async function parseAiResponseCategories(
   response: string,
 ): Promise<any> {
-  let responseSplitted = response.split('[')[1].split(']')[0];
-  let responseFormatted = '[' + responseSplitted + ']';
+  const responseSplitted = response.split('[')[1].split(']')[0];
+  const responseFormatted = '[' + responseSplitted + ']';
 
   const categoriesArray = JSON.parse(responseFormatted);
   return categoriesArray;
@@ -67,6 +67,6 @@ export async function axiosAiRequest(
 }
 
 export function cleanAiResponse(text: string): string {
-  let textCleaned = text.replace(/```html/g, '').replace(/```/g, '');
+  const textCleaned = text.replace(/```html/g, '').replace(/```/g, '');
   return textCleaned;
 }

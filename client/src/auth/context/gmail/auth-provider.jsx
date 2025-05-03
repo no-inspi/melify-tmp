@@ -48,39 +48,46 @@ export function AuthProvider({ children }) {
     try {
       let accessToken = sessionStorage.getItem(STORAGE_KEY);
       let refresh_token = sessionStorage.getItem('refreshToken');
+      let accountId = sessionStorage.getItem('accountId');
       let returnUrl = null;
       let email = null;
 
-      await fetch(`${CONFIG.site.serverUrl}/api/auth/session`, {
+      const sessionResponse = await fetch(`${CONFIG.site.serverUrl}/api/auth/session`, {
         credentials: 'include',
-      })
-        .then((response) => {
-          if (response.ok) {
-            // Check if the status code is 200-299
-            return response.json(); // Parses the body of the response as JSON
-          }
-          throw new Error('Network response was not ok.');
-        })
-        .then((data) => {
-          if (data.returnUrl) {
-            returnUrl = data.returnUrl;
-          }
-          accessToken = data.accessToken;
-          refresh_token = data.refresh_token;
-          email = data.email;
-        })
-        .catch((error) => {
-          console.error('There has been a problem with your fetch operation:', error);
-        });
-      if (accessToken) {
+      });
+
+      if (sessionResponse.ok) {
+        const data = await sessionResponse.json();
+
+        if (data.returnUrl) {
+          returnUrl = data.returnUrl;
+        }
+
+        accessToken = data.accessToken;
+        refresh_token = data.refresh_token;
+        email = data.email;
+        accountId = data.accountId;
+
+        // Store the account information
+        if (accountId) {
+          sessionStorage.setItem('accountId', accountId);
+        }
+        if (email) {
+          sessionStorage.setItem('email', email);
+        }
+      } else {
+        console.error('Session fetch failed');
+      }
+
+      if (accessToken && accountId) {
         const isExpired = !isValidToken(accessToken);
 
         if (isExpired) {
-          accessToken = await refreshToken(email, logout); // Refresh token if expired
+          accessToken = await refreshToken(accountId, logout); // Use accountId instead of email
           if (!accessToken) return; // Exit if refresh failed
         }
 
-        setSession(accessToken, refresh_token);
+        setSession(accessToken, refresh_token, accountId, email);
 
         const response = await axios.get(endpoints.auth.me, {
           withCredentials: true, // Include cookies with the request
@@ -88,7 +95,15 @@ export function AuthProvider({ children }) {
 
         const { user } = response.data;
 
-        setState({ user: { ...user, accessToken }, loading: false });
+        setState({
+          user: {
+            ...user,
+            accessToken,
+            accountId,
+            currentAccount: user.currentAccount,
+          },
+          loading: false,
+        });
 
         if (returnUrl !== null) {
           router.replace(returnUrl);
@@ -97,7 +112,7 @@ export function AuthProvider({ children }) {
         setState({ user: null, loading: false });
       }
     } catch (error) {
-      console.error(error);
+      console.error('Error checking user session:', error);
       setState({ user: null, loading: false });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -107,6 +122,32 @@ export function AuthProvider({ children }) {
     checkUserSession();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Add function to switch accounts
+  const switchAccount = useCallback(
+    async (newAccountId) => {
+      try {
+        const response = await fetch(`${CONFIG.site.serverUrl}/api/auth/switch-account`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({ accountId: newAccountId }),
+        });
+
+        if (response.ok) {
+          // Re-check user session to update with new account
+          await checkUserSession();
+        } else {
+          console.error('Failed to switch account');
+        }
+      } catch (error) {
+        console.error('Error switching account:', error);
+      }
+    },
+    [checkUserSession]
+  );
 
   // ----------------------------------------------------------------------
 
@@ -127,9 +168,10 @@ export function AuthProvider({ children }) {
       authenticated: status === 'authenticated',
       unauthenticated: status === 'unauthenticated',
       logout,
+      switchAccount,
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [checkUserSession, state.user, status]
+    [checkUserSession, state.user, status, switchAccount]
   );
 
   return <AuthContext.Provider value={memoizedValue}>{children}</AuthContext.Provider>;

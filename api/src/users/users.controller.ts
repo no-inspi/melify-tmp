@@ -90,13 +90,11 @@ export class UsersController {
 
   @Get('search_suggestion')
   async search_suggestion(@Query('userEmail') userEmail: string): Promise<any> {
-    console.log('userEmail', userEmail);
     return this.usersService.getMostUsedSearch(userEmail);
   }
 
   @Get('user_metrics')
   async user_metrics(@Query('userEmail') userEmail: string): Promise<any> {
-    console.log('userEmail', userEmail);
     return this.usersService.getMetrics(userEmail);
   }
 }

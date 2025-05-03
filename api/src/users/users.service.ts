@@ -8,6 +8,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 
 import { User } from './schemas/users.schema';
+import { Accounts } from './schemas/accounts.schema';
 import { ProfileType } from './schemas/profileType.schema';
 import { Email } from '../mails/schemas/emails.schema';
 import { Token } from '../auth/schemas/tokens.schema'; // Adjust import path as necessary
@@ -16,16 +17,14 @@ import { Search } from './schemas/search.schema';
 
 import { UserHelpers } from './helpers/user.helpers';
 
-import {
-  extractEmails,
-  extractSingleEmail,
-} from '../mails/helpers/email.helpers';
+import { extractSingleEmail } from '../mails/helpers/email.helpers';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectModel(ProfileType.name) private profileTypeModel: Model<ProfileType>,
     @InjectModel(User.name) private userModel: Model<User>,
+    @InjectModel(Accounts.name) private accountsModel: Model<Accounts>,
     @InjectModel(Email.name) private readonly emailModel: Model<Email>,
     @InjectModel(Token.name) private tokenModel: Model<Token>,
     @InjectModel(Contact.name) private contactModel: Model<Contact>,
@@ -79,8 +78,8 @@ export class UsersService {
     if (!userEmail) {
       throw new BadRequestException('Missing userEmail');
     }
-
-    const user = await this.userModel.findOne({ email: userEmail });
+    const account = await this.accountsModel.findOne({ email: userEmail });
+    const user = await this.userModel.findOne({ _id: account.userId });
     if (!user) {
       throw new NotFoundException('User not found');
     }
@@ -109,7 +108,9 @@ export class UsersService {
       throw new BadRequestException('Missing userEmail');
     }
 
-    const user = await this.userModel.findOne({ email: userEmail });
+    const account = await this.accountsModel.findOne({ email: userEmail });
+
+    const user = await this.userModel.findOne({ _id: account.userId });
     if (!user) {
       throw new NotFoundException('User not found');
     }
@@ -139,7 +140,9 @@ export class UsersService {
       throw new BadRequestException('Missing userEmail');
     }
 
-    const user = await this.userModel.findOne({ email: userEmail });
+    const account = await this.accountsModel.findOne({ email: userEmail });
+
+    const user = await this.userModel.findOne({ _id: account.userId });
     if (!user) {
       throw new NotFoundException('User not found');
     }
@@ -151,7 +154,7 @@ export class UsersService {
       throw new NotFoundException('Profile type not found');
     }
 
-    let tagMapping = {};
+    const tagMapping = {};
     for (const category of profileType.categories) {
       tagMapping[category.name.toLowerCase()] = {
         name: category.displayName,
@@ -182,7 +185,7 @@ export class UsersService {
     return tagMapping;
   }
 
-  async getEmailContacts(userEmail: String): Promise<{ contacts: string[] }> {
+  async getEmailContacts(userEmail: string): Promise<{ contacts: string[] }> {
     try {
       const emailRegex = new RegExp(`.*${userEmail}.*`, 'i'); // 'i' for case-insensitivity
 
@@ -243,16 +246,17 @@ export class UsersService {
 
   async generateCategoriesForUser(
     userEmail: string,
-    categories: [any],
+    categories: any[],
     userDescription: string,
   ): Promise<any> {
     if (!userEmail || !categories) {
-      throw new BadRequestException('Missing userEmail');
+      throw new BadRequestException('Missing userEmail or categories');
     }
 
-    const user = await this.userModel.findOne({ email: userEmail });
-    const tokens = await this.tokenModel.findOne({ userId: user._id });
+    const account = await this.accountsModel.findOne({ email: userEmail });
 
+    // Find the user
+    const user = await this.userModel.findOne({ _id: account.userId });
     if (!user) {
       throw new NotFoundException('User not found');
     }
@@ -261,6 +265,17 @@ export class UsersService {
       throw new BadRequestException('Profile type already set');
     }
 
+    if (!account) {
+      throw new NotFoundException('Account not found for user');
+    }
+
+    // Find token for the account
+    const token = await this.tokenModel.findById(account.tokenId);
+    if (!token) {
+      throw new NotFoundException('Token not found for account');
+    }
+
+    // Create new profile type
     const newProfileType = new this.profileTypeModel({
       description: userDescription,
       categories: categories.map((category) => ({
@@ -274,12 +289,15 @@ export class UsersService {
 
     await newProfileType.save();
 
+    // Update user with profile type
     user.profileType = newProfileType._id as Types.ObjectId;
-
     await user.save();
 
-    await this.userHelpers.setupGmailWatch(user._id, tokens.accessToken);
-    this.userHelpers.retrieve30daysEmail(user.email);
+    // Setup Gmail watch for this account
+    await this.userHelpers.setupGmailWatch(account._id, token.accessToken);
+
+    // Retrieve emails for this account
+    this.userHelpers.retrieve30daysEmail(account.email);
 
     return newProfileType;
   }
@@ -289,7 +307,9 @@ export class UsersService {
       throw new BadRequestException('Missing userEmail');
     }
 
-    const user = await this.userModel.findOne({ email: userEmail });
+    const account = await this.accountsModel.findOne({ email: userEmail });
+
+    const user = await this.userModel.findOne({ _id: account.userId });
 
     if (!user) {
       throw new NotFoundException('User not found');
@@ -377,7 +397,8 @@ export class UsersService {
   async add_search(body: any): Promise<any> {
     const { searchText, userEmail } = body;
 
-    const user = await this.userModel.findOne({ email: userEmail });
+    const account = await this.accountsModel.findOne({ email: userEmail });
+    const user = await this.userModel.findOne({ _id: account.userId });
 
     if (!user) {
       throw new Error('User not found');
@@ -397,7 +418,8 @@ export class UsersService {
 
   async getMostUsedSearch(email: string): Promise<any> {
     // Find the user by email
-    const user = await this.userModel.findOne({ email });
+    const account = await this.accountsModel.findOne({ email });
+    const user = await this.userModel.findOne({ _id: account.userId });
 
     // Check if the user exists
     if (!user) {
@@ -428,7 +450,8 @@ export class UsersService {
   }
 
   async getMetrics(email: string): Promise<any> {
-    const user = await this.userModel.findOne({ email });
+    const account = await this.accountsModel.findOne({ email });
+    const user = await this.userModel.findOne({ _id: account.userId });
 
     // Check if the user exists
     if (!user) {

@@ -1,19 +1,16 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 // Remove this: import OpenAI from 'openai';
 import { ChatOpenAI } from '@langchain/openai'; // Ensure this path is correct for your LangChain version
-import { PromptTemplate } from '@langchain/core/prompts';
 import { JSONLoader } from 'langchain/document_loaders/fs/json';
-import { formatDocumentsAsString } from 'langchain/util/document';
-import { CharacterTextSplitter } from 'langchain/text_splitter';
 
-const TEMPLATE = `Answer the user's questions based only on the following context. If the answer is not in the context, reply politely that you do not have that information available.:
-==============================
-Context: {context}
-==============================
-Current conversation: {chat_history}
+// const TEMPLATE = `Answer the user's questions based only on the following context. If the answer is not in the context, reply politely that you do not have that information available.:
+// ==============================
+// Context: {context}
+// ==============================
+// Current conversation: {chat_history}
 
-user: {question}
-assistant:`;
+// user: {question}
+// assistant:`;
 
 interface StateDocument {
   state: string;

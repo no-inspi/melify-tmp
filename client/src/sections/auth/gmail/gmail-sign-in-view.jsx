@@ -4,9 +4,7 @@
 import './googleSignInButton.css';
 
 import { z as zod } from 'zod';
-
-import { CONFIG } from 'src/config-global'; // Import the CSS file
-
+import { CONFIG } from 'src/config-global';
 import Box from '@mui/material/Box';
 import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
@@ -32,13 +30,24 @@ const SCOPES = encodeURIComponent(
   'profile email https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.modify'
 );
 
-const AUTH_URL = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&scope=${SCOPES}&access_type=offline&prompt=consent`;
+// Generate auth URL with state for normal login
+const generateAuthUrl = () => {
+  const stateObj = {
+    isAddingAccount: false,
+    userId: null,
+  };
+
+  const stateParam = encodeURIComponent(JSON.stringify(stateObj));
+
+  return `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&scope=${SCOPES}&access_type=offline&prompt=consent&state=${stateParam}`;
+};
 
 // ----------------------------------------------------------------------
 
 export function GmailSignInView() {
   const handleSignIn = () => {
-    window.location.href = AUTH_URL;
+    const authUrl = generateAuthUrl();
+    window.location.href = authUrl;
   };
 
   const renderHead = (
@@ -135,10 +144,6 @@ export function GmailSignInView() {
   return (
     <Box sx={{ mt: -15 }}>
       {renderHead}
-
-      {/* <Alert severity="info" sx={{ mb: 3 }}>
-        Use email : <strong>charlie.apcher@gmail.com</strong> / password :<strong> test</strong>
-      </Alert> */}
       {renderGmail}
     </Box>
   );
