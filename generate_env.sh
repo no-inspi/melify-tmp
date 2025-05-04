@@ -36,19 +36,21 @@ Please create a JSON configuration file at the root of your project with the fol
 {
   \"environments\": {
     \"development\": {
-      \"frontend\": { ... },
-      \"backend\": { ... },
-      \"scripts\": { ... }
+      \"client\": { ... },
+      \"api\": { ... },
+      \"gcp/process_mails\": { ... }
+      \"./\": { ... }
     },
     \"production\": {
-      \"frontend\": { ... },
-      \"backend\": { ... },
-      \"scripts\": { ... }
+      \"client\": { ... },
+      \"api\": { ... },
+      \"gcp/process_mails\": { ... }
+       \"./\": { ... }
     }
   },
   \"shared\": {
-    \"APP_NAME\": \"MyApp\",
-    \"APP_VERSION\": \"1.0.0\"
+    \"OPENAI_API_KEY\": \"YOUR_API_KEY\",
+    \"API_KEY_MISTRAL\": \"YOUR_API_KEY\"
   }
 }"
 fi
@@ -190,14 +192,14 @@ fi
 
 for service in $services; do
     case "$service" in
-        "frontend")
-            create_env_file "$service" "./frontend/.env"
+        "client")
+            create_env_file "$service" "./client/.env"
             ;;
-        "backend")
-            create_env_file "$service" "./backend/.env"
+        "api")
+            create_env_file "$service" "./api/.env"
             ;;
-        "scripts")
-            create_env_file "$service" "./scripts/.env"
+        "gcp/process_mails")
+            create_env_file "$service" "./gcp/process_mails/.env"
             ;;
         *)
             # For any other service, create in a directory with the service name
@@ -209,22 +211,22 @@ done
 # Create example files if in development environment
 if [ "$ENVIRONMENT" = "development" ]; then
     echo
-    info "Creating .env.example files..."
+    info "Creating .env.dev files..."
     echo
     
     for service in $services; do
         case "$service" in
-            "frontend")
-                cp "./frontend/.env" "./frontend/.env.example" 2>/dev/null && success "Created ./frontend/.env.example"
+            "client")
+                cp "./client/.env" "./client/.env.dev" 2>/dev/null && success "Created ./client/.env.dev"
                 ;;
-            "backend")
-                cp "./backend/.env" "./backend/.env.example" 2>/dev/null && success "Created ./backend/.env.example"
+            "api")
+                cp "./api/.env" "./api/.env.dev" 2>/dev/null && success "Created ./api/.env.dev"
                 ;;
-            "scripts")
-                cp "./scripts/.env" "./scripts/.env.example" 2>/dev/null && success "Created ./scripts/.env.example"
+            "gcp/process_mails")
+                cp "./gcp/process_mails/.env" "./gcp/process_mails/.env.dev" 2>/dev/null && success "Created ./gcp/process_mails/.env.dev"
                 ;;
             *)
-                cp "./$service/.env" "./$service/.env.example" 2>/dev/null && success "Created ./$service/.env.example"
+                cp "./$service/.env" "./$service/.env.dev" 2>/dev/null && success "Created ./$service/.env.dev"
                 ;;
         esac
     done

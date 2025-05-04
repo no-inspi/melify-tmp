@@ -271,12 +271,6 @@ export function AccountDrawer({ data = [], sx, ...other }) {
         <Scrollbar>
           <Stack alignItems="center" sx={{ pt: 8, pb: 3 }}>
             {renderAvatar}
-            <div className="mt-3 flex flex-col gap-5 items-center">
-              <div>{renderAccounts}</div>
-              <div>
-                <AddAccountButton />
-              </div>
-            </div>
             <Typography
               variant="body1"
               sx={{
@@ -291,6 +285,12 @@ export function AccountDrawer({ data = [], sx, ...other }) {
               {user?.levelTitle}
             </Typography>
             {renderBadge}
+            <div className="mt-3 flex flex-col gap-3 items-end">
+              <div>{renderAccounts}</div>
+              <div>
+                <AddAccountButton />
+              </div>
+            </div>
           </Stack>
 
           <Stack

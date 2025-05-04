@@ -23,6 +23,7 @@ build
 .env.test.local
 .env.production.local
 .env.test
+.env.dev
 
 /deployment
 
@@ -46,3 +47,5 @@ gcp/process_mails/running_pids.txt
 
 docker-compose.yaml
 data/
+
+env.config.json
