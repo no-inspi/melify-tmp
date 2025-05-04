@@ -1,10 +1,11 @@
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { User } from '../schemas/users.schema';
 import { ProfileType } from '../schemas/profileType.schema';
 import { Subscription } from '../schemas/subscription.schema'; // Adjust import path as necessary
+import { Accounts } from '../schemas/accounts.schema';
 import { MailsInteraction } from 'src/mails/schemas/mailsinteraction.schema';
 import { Thread } from 'src/mails/schemas/thread.schema';
 import { Badge } from '../schemas/badge.schema';
@@ -15,6 +16,7 @@ import axios from 'axios';
 export class UserHelpers {
   constructor(
     @InjectModel(User.name) private userModel: Model<User>,
+    @InjectModel(Accounts.name) private accountsModel: Model<Accounts>,
     @InjectModel(ProfileType.name) private profileTypeModel: Model<ProfileType>,
     @InjectModel(MailsInteraction.name)
     private mailsInteractionModel: Model<MailsInteraction>,
@@ -22,7 +24,7 @@ export class UserHelpers {
     private threadModel: Model<Thread>,
     @InjectModel(Badge.name) private badgeModel: Model<Badge>,
     @InjectModel(Subscription.name)
-    private subscriptionModel: Model<Subscription>, // Adjust the path if necessary
+    private subscriptionModel: Model<Subscription>,
     private configService: ConfigService,
   ) {}
 
@@ -56,15 +58,58 @@ export class UserHelpers {
     }
   }
 
-  async checkUserExists(email: string): Promise<boolean> {
+  async createAccount(account: {
+    userId: string;
+    email: string;
+    refreshTokenId: string;
+  }): Promise<Accounts> {
+    try {
+      if (!account.userId || !account.email) {
+        throw new Error('accounts must have a first name and email.');
+      }
+
+      const newaccounts = new this.accountsModel({
+        userId: account.userId,
+        email: account.email,
+        refreshTokenId: account.refreshTokenId,
+      });
+
+      await newaccounts.save();
+
+      console.log('accounts created successfully:', newaccounts);
+
+      return newaccounts;
+    } catch (error) {
+      console.error('Error creating accounts:', error);
+      throw error;
+    }
+  }
+
+  async checkAccountExists(email: string): Promise<boolean> {
+    try {
+      const account = await this.accountsModel.findOne({ email }).exec();
+      if (account) {
+        console.log('account exists:', account);
+        return true; // account exists
+      } else {
+        console.log('account does not exist');
+        return false; // account does not exist
+      }
+    } catch (error) {
+      console.error('Error checking account existence:', error);
+      throw error; // Or handle it as appropriate
+    }
+  }
+
+  async checkuserExists(email: string): Promise<boolean> {
     try {
       const user = await this.userModel.findOne({ email }).exec();
       if (user) {
-        console.log('User exists:', user);
-        return true; // User exists
+        console.log('user exists:', user);
+        return true; // user exists
       } else {
-        console.log('User does not exist');
-        return false; // User does not exist
+        console.log('user does not exist');
+        return false; // user does not exist
       }
     } catch (error) {
       console.error('Error checking user existence:', error);
@@ -112,7 +157,7 @@ export class UserHelpers {
         this.configService.get<string>('NODE_ENV') !== 'production';
 
       if (isDevelopment) {
-        retrieveEmailUrl = 'http://localhost:8082';
+        retrieveEmailUrl = 'http://127.0.0.1:8082';
       }
 
       const response = await axios.post(
@@ -154,7 +199,7 @@ export class UserHelpers {
         this.configService.get<string>('NODE_ENV') !== 'production';
 
       if (isDevelopment) {
-        retrieveEmailByLabelsUrl = 'http://localhost:8083';
+        retrieveEmailByLabelsUrl = 'http://127.0.0.1:8083';
       }
 
       const response = await axios.post(

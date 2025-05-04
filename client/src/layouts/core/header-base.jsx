@@ -12,6 +12,8 @@ import { AccountDrawer } from '../components/account-drawer';
 import { SettingsButton } from '../components/settings-button';
 import { LanguagePopover } from '../components/language-popover';
 import AutoCompleteSearchBar from '../components/searchbar/customAutocomplete';
+import DropDownStatus from 'src/components/dropdownstatus';
+// import RefreshEmails from 'src/components/refreshEmails';
 
 // ----------------------------------------------------------------------
 
@@ -135,12 +137,14 @@ export function HeaderBase({
 
               {/* -- Contacts popover -- */}
               {/* {contacts && <ContactsPopover data-slot="contacts" data={data?.contacts} />} */}
-
+              {/* {process.env.NODE_ENV === "development" && <RefreshEmails />} */}
+              {process.env.NODE_ENV === "development" && <DropDownStatus />}
               {/* -- Settings button -- */}
               {settings && <SettingsButton data-slot="settings" />}
 
               {/* -- Account drawer -- */}
               {account && <AccountDrawer data-slot="account" data={data?.account} />}
+              
             </Box>
 
             {slots?.rightAreaEnd}

@@ -66,7 +66,6 @@ export function Editor({ content, handleChangeContent }) {
     extensions: extensions,
     content: content,
     onUpdate: ({ editor }) => {
-      console.log(editor.getHTML());
       const updatedContent = editor.getHTML(); // Get updated content as HTML
       handleChangeContent(updatedContent); // Update state with the new content
     },

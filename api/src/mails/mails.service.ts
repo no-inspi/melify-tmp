@@ -8,6 +8,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { PipelineStage } from 'mongoose';
 import { Model } from 'mongoose';
 import { User } from '../users/schemas/users.schema';
+import { Accounts } from '../users/schemas/accounts.schema';
 import { Email } from './schemas/emails.schema'; // Adjust import as necessary
 import { Thread } from './schemas/thread.schema';
 import { MailsInteraction } from './schemas/mailsinteraction.schema';
@@ -22,6 +23,7 @@ import {
   createMessage,
   extractEmails,
   extractNewContent,
+  transformEmails,
 } from './helpers/email.helpers';
 import { TemplateService } from 'src/templates/templates.service';
 import { MailsGateway } from './mails.gateway';
@@ -44,6 +46,7 @@ import { ProfileType } from 'src/users/schemas/profileType.schema';
 export class MailsService {
   constructor(
     @InjectModel(Email.name) private emailModel: Model<Email>,
+    @InjectModel(Accounts.name) private accountsModel: Model<Accounts>,
     @InjectModel(Thread.name) private threadModel: Model<Thread>,
     @InjectModel(User.name) private userModel: Model<User>,
     @InjectModel(Token.name) private tokenModel: Model<Token>,
@@ -69,8 +72,10 @@ export class MailsService {
 
     const emailRegex = new RegExp(`.*${userEmail}.*`, 'i'); // 'i' for case-insensitivity
 
+    const account = await this.accountsModel.findOne({ email: userEmail });
+
     const user = await this.userModel
-      .findOne({ email: userEmail })
+      .findOne({ _id: account.userId })
       .populate<{ profileType: ProfileType }>('profileType')
       .exec();
     if (!user) {
@@ -156,6 +161,7 @@ export class MailsService {
     searching: string;
   }): Promise<any> {
     try {
+      this.userHelpers.retrieve30daysEmail(email);
       const parsedObject = parseSearchString(searchWords);
 
       const { query, queryThread } = await getMongooseQueryFromObject(
@@ -316,7 +322,7 @@ export class MailsService {
     try {
       const parsedObject = parseSearchString(searchWords);
 
-      const { query, queryThread } = await getMongooseQueryFromObject(
+      const { query } = await getMongooseQueryFromObject(
         labelIds,
         email,
         parsedObject,
@@ -442,8 +448,6 @@ export class MailsService {
         labelIds: 'UNREAD',
         deliveredTo: deliveredTo,
       });
-
-      console.log('unread emails', unreadEmails);
 
       if (unreadEmails.length === 0) {
         return { message: 'No unread emails found in the thread.' };
@@ -613,11 +617,7 @@ export class MailsService {
 
       let additionnalHtmlContent = '';
 
-      if (
-        body.user.email === 'paul.charon@melify.fr'
-        // ||
-        // body.user.email === 'charlie.apcher@gmail.com'
-      ) {
+      if (body.user.email === 'charlie.apcher@melify.fr') {
         additionnalHtmlContent = this.templateService.compileTemplate(
           'paulMessage',
           {},
@@ -653,6 +653,12 @@ export class MailsService {
 
       const sendResult = await sendEmail(gmail, emailContent);
 
+      const transformEmailsResponse = await transformEmails(
+        body.user.email,
+        sendResult.id,
+      );
+
+      this.saveEmailToDatabase(transformEmailsResponse);
       const response = await gmail.users.drafts.delete({
         userId: 'me',
         id: body.draftId,
@@ -780,6 +786,10 @@ export class MailsService {
         userId: 'me',
         id: body.draftId,
       });
+
+      if (response.status !== 200 && response.status !== 204) {
+        throw new InternalServerErrorException('Failed to delete email draft.');
+      }
 
       return {
         message: 'Email sent successfully',
@@ -910,7 +920,10 @@ export class MailsService {
             case 'filename':
               break;
             case 'category':
-              const user = await this.userModel.findOne({ email });
+              const account = await this.accountsModel.findOne({ email });
+              const user = await this.userModel.findOne({
+                _id: account.userId,
+              });
 
               const profileType = await this.profileTypeModel.findOne({
                 _id: user.profileType,
@@ -1136,7 +1149,9 @@ export class MailsService {
         threadId,
       });
 
-      const user = await this.userModel.findOne({ email });
+      const account = await this.accountsModel.findOne({ email });
+
+      const user = await this.userModel.findOne({ _id: account.userId });
 
       let userInteractions = [];
       let newBadgesUnlocked: any[] = [];
@@ -1151,7 +1166,7 @@ export class MailsService {
 
         const userMetrics = await this.userHelpers.getMetricsHelper(user._id);
 
-        const { newBadgesUnlocked: badgesTmp = [], currentBadges } =
+        const { newBadgesUnlocked: badgesTmp = [] } =
           await this.userHelpers.getBadgesUnlocked(user._id, userMetrics);
 
         // Ensure newBadgesUnlocked is always an array
@@ -1218,7 +1233,9 @@ export class MailsService {
         threadId,
       });
 
-      const user = await this.userModel.findOne({ email });
+      const account = await this.accountsModel.findOne({ email });
+
+      const user = await this.userModel.findOne({ _id: account.userId });
 
       let userInteractions = [];
       let newBadgesUnlocked: any[] = [];
@@ -1233,7 +1250,7 @@ export class MailsService {
 
         const userMetrics = await this.userHelpers.getMetricsHelper(user._id);
 
-        const { newBadgesUnlocked: badgesTmp = [], currentBadges } =
+        const { newBadgesUnlocked: badgesTmp = [] } =
           await this.userHelpers.getBadgesUnlocked(user._id, userMetrics);
 
         // Ensure newBadgesUnlocked is always an array
@@ -1332,6 +1349,38 @@ export class MailsService {
     } catch (error) {
       console.error('Failed to delete thread:', error);
       throw new InternalServerErrorException('Failed to delete thread.');
+    }
+  }
+
+  /**
+   * Insert the transformed email response into MongoDB
+   */
+  async saveEmailToDatabase(transformEmailsResponse: any): Promise<Email> {
+    try {
+      console.log(
+        'Saving email to database:',
+        JSON.stringify(transformEmailsResponse, null, 2),
+      );
+
+      // Create a new document using the email model
+      const createdEmail = new this.emailModel(transformEmailsResponse);
+
+      // Save the document to the database
+      const savedEmail = await createdEmail.save();
+
+      console.log('Email saved successfully with ID:', savedEmail._id);
+      return savedEmail;
+    } catch (error) {
+      console.error('Error saving email to database:', error);
+
+      // Check for duplicate key error (common in MongoDB)
+      if (error.code === 11000) {
+        console.error(
+          'Duplicate key error. This email might already exist in the database.',
+        );
+      }
+
+      throw new Error(`Failed to save email to database: ${error.message}`);
     }
   }
 }

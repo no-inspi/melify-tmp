@@ -1,54 +1,9 @@
 import React, { useState, useEffect } from 'react';
 
+import {cloud_functions} from 'src/utils/constants';
+
 const CloudFunctionStatus = () => {
-  const [functions, setFunctions] = useState([
-    // {
-    //   name: 'Gmail Email Processor',
-    //   url: process.env.NEXT_PUBLIC_GMAIL_EMAIL_URL || 'http://localhost:8080/gmail_email_entry_point?health=check',
-    //   status: 'loading',
-    //   lastChecked: null,
-    //   error: null
-    // },
-    // {
-    //   name: 'Daily Subscription Renewal',
-    //   url: process.env.NEXT_PUBLIC_DAILY_SUB_URL || 'http://localhost:8080/daily_sub_entry_point?health=check',
-    //   status: 'loading',
-    //   lastChecked: null,
-    //   error: null
-    // },
-    {
-      name: 'Last 30 Days Batch',
-      url:
-        process.env.NEXT_PUBLIC_LAST_30_DAYS_URL ||
-        'http://localhost:8082/last_30_days?health=check',
-      status: 'loading',
-      lastChecked: null,
-      error: null,
-    },
-    // {
-    //   name: 'Onboarding Pinecone',
-    //   url: process.env.NEXT_PUBLIC_ONBOARDING_PINECONE_URL || 'http://localhost:8080/onboarding_pinecone_entry_point?health=check',
-    //   status: 'loading',
-    //   lastChecked: null,
-    //   error: null
-    // },
-    // {
-    //   name: 'Onboarding Categories',
-    //   url: process.env.NEXT_PUBLIC_ONBOARDING_CATEGORIES_URL || 'http://localhost:8080/onboarding_categories_entry_point?health=check',
-    //   status: 'loading',
-    //   lastChecked: null,
-    //   error: null
-    // },
-    {
-      name: 'Retrieve Email by Labels',
-      url:
-        process.env.NEXT_PUBLIC_RETRIEVE_EMAIL_URL ||
-        'http://localhost:8083/retrieve_email_by_labels_entry_point?health=check',
-      status: 'loading',
-      lastChecked: null,
-      error: null,
-    },
-  ]);
+  const [functions, setFunctions] = useState(cloud_functions);
 
   useEffect(() => {
     const checkStatus = async () => {

@@ -72,6 +72,8 @@ export function tokenExpired(exp) {
     alert('Token expired');
 
     sessionStorage.removeItem('accessToken');
+    sessionStorage.removeItem('refreshToken');
+    sessionStorage.removeItem('accountId');
 
     window.location.href = paths.auth.jwt.login;
   }, timeLeft);
@@ -79,21 +81,27 @@ export function tokenExpired(exp) {
 
 // ----------------------------------------------------------------------
 
-export async function setSession(accessToken, refresh_token = null) {
+export async function setSession(accessToken, refresh_token = null, accountId = null, email = null) {
   try {
     if (accessToken) {
-      // Store accessToken in sessionStorage
+      // Store tokens and account info in sessionStorage
       sessionStorage.setItem('accessToken', accessToken);
-
-      // Store refreshToken if provided
       if (refresh_token) {
         sessionStorage.setItem('refreshToken', refresh_token);
       }
+      if (accountId) {
+        sessionStorage.setItem('accountId', accountId);
+      }
+      if (email) {
+        sessionStorage.setItem('email', email);
+      }
 
-      // Decode the access token to get the expiration time
+      // Store in cookies as well
       const tokenData = JSON.stringify({
         access_token: accessToken,
         refresh_token: refresh_token || sessionStorage.getItem('refreshToken'),
+        accountId: accountId || sessionStorage.getItem('accountId'),
+        email: email || sessionStorage.getItem('email'),
       });
 
       Cookies.set('cookie', tokenData, {
@@ -106,9 +114,11 @@ export async function setSession(accessToken, refresh_token = null) {
       // Set Authorization header for axios
       axios.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
     } else {
-      // Remove accessToken from sessionStorage and cookies
+      // Remove all stored data
       sessionStorage.removeItem('accessToken');
       sessionStorage.removeItem('refreshToken');
+      sessionStorage.removeItem('accountId');
+      sessionStorage.removeItem('email');
 
       Cookies.remove('cookie');
 
@@ -120,21 +130,29 @@ export async function setSession(accessToken, refresh_token = null) {
   }
 }
 
-export const refreshToken = async (email, logout) => {
+export const refreshToken = async (accountId, logout) => {
   try {
+    if (!accountId) {
+      console.error('No account ID provided for token refresh');
+      if (logout) logout();
+      return null;
+    }
+
     const response = await fetch(`${CONFIG.site.serverUrl}/api/auth/refresh-token`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       credentials: 'include',
-      body: JSON.stringify({ email }), // Send email in the body
+      body: JSON.stringify({ accountId }), // Send accountId instead of email
     });
 
     if (!response.ok) throw new Error('Failed to refresh token');
 
-    const { access_token, refresh_token } = await response.json(); // Expect access and refresh tokens in the response
-    setSession(access_token, refresh_token); // Update session with both tokens
+    const { access_token, refresh_token, accountId: newAccountId, email } = await response.json();
+    
+    // Update session with new tokens and account info
+    setSession(access_token, refresh_token, newAccountId, email);
 
     return access_token; // Return the new access token
   } catch (error) {

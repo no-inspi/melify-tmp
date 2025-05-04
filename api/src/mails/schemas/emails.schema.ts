@@ -4,6 +4,9 @@ import { Document } from 'mongoose';
 @Schema({ timestamps: true })
 export class Email extends Document {
   @Prop()
+  date: string;
+
+  @Prop()
   messageId: string;
 
   @Prop()

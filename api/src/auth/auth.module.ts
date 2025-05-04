@@ -3,6 +3,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { User, UserSchema } from '../users/schemas/users.schema';
+import { Accounts, AccountsSchema } from 'src/users/schemas/accounts.schema';
 import { Token, TokenSchema } from './schemas/tokens.schema'; // Adjust import paths as necessary
 import { UsersModule } from '../users/users.module'; // Import UsersModule
 import { Badge, BadgeSchema } from '../users/schemas/badge.schema';
@@ -14,6 +15,9 @@ import {
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
+    MongooseModule.forFeature([
+      { name: Accounts.name, schema: AccountsSchema },
+    ]),
     MongooseModule.forFeature([{ name: Token.name, schema: TokenSchema }]),
     MongooseModule.forFeature([{ name: Badge.name, schema: BadgeSchema }]),
     MongooseModule.forFeature([

@@ -560,4 +560,55 @@ def fetch_email_without_category(service, user_email, message_id, message, db, I
         sentry_sdk.capture_exception(e)
         print(f"Error fetching email with ID {message_id}: {e}")
         return None
-  
+
+def get_user_by_email(email, db):
+    accounts_collection = db.accounts
+    users_collection = db.users
+    
+    # Use find_one() instead of find() to get a single document
+    existing_account = accounts_collection.find_one({'email': email})
+    
+    # Check if account exists
+    if not existing_account:
+        print(f"No account found for email: {email}")
+        return None
+    
+    print(f"Existing account: {existing_account}")
+    
+    # Make sure the account has a userId field
+    if 'userId' not in existing_account:
+        print(f"Account doesn't have userId field: {existing_account}")
+        return None
+    
+    pipeline = [
+        {"$match": {"_id": existing_account['userId']}},  # Access userId as a dictionary key
+        {"$lookup": {
+            "from": "profiletypes",  # The collection to join with
+            "localField": "profileType",  # The field from the users collection
+            "foreignField": "_id",  # The field from the profileTypes collection
+            "as": "profileTypeInfo"  # The output array field which will contain the joined data
+        }},
+        {"$unwind": "$profileTypeInfo"},  # Optional: Deconstructs the array field from the output to promote its objects to the top level
+    ]
+    
+    result = users_collection.aggregate(pipeline)
+    
+    # Convert the result to a list and return
+    user_info = list(result)
+    return user_info[0] if user_info else None
+
+def is_access_token_valid(access_token):
+    # Check if token is valid by making a simple API call
+    response = requests.get('https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=' + access_token)
+    return response.status_code == 200
+
+def refresh_access_token(refresh_token, client_id, client_secret):
+    data = {
+        'client_id': client_id,
+        'client_secret': client_secret,
+        'refresh_token': refresh_token,
+        'grant_type': 'refresh_token'
+    }
+    response = requests.post('https://oauth2.googleapis.com/token', data=data)
+    response_data = response.json()
+    return response_data.get('access_token'), response_data.get('refresh_token', refresh_token)

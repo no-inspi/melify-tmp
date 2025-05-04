@@ -8,6 +8,7 @@ import { Model } from 'mongoose';
 import { User } from '../users/schemas/users.schema'; // Adjust import path as necessary
 import { Token } from './schemas/tokens.schema'; // Adjust import path as necessary
 import { ProfileType } from 'src/users/schemas/profileType.schema';
+import { Accounts } from '../users/schemas/accounts.schema';
 import { google } from 'googleapis';
 import { UserHelpers } from '../users/helpers/user.helpers';
 import { ConfigService } from '@nestjs/config';
@@ -20,6 +21,7 @@ export class AuthService {
     @InjectModel(User.name) private userModel: Model<User>,
     @InjectModel(Token.name) private tokenModel: Model<Token>,
     @InjectModel(ProfileType.name) private profileTypeModel: Model<ProfileType>,
+    @InjectModel(Accounts.name) private accountsModel: Model<Accounts>,
     private readonly userHelpers: UserHelpers, // Inject the helper
     private configService: ConfigService,
   ) {
@@ -35,7 +37,6 @@ export class AuthService {
     if (!req.cookies) {
       throw new UnauthorizedException('Authentication required.');
     }
-    console.log(req.cookies);
     const authTokens = JSON.parse(req.cookies['auth_tokens'] || '{}');
     if (!authTokens.id_token) {
       throw new UnauthorizedException('No ID token found.');
@@ -49,7 +50,6 @@ export class AuthService {
       });
 
       const payload = ticket.getPayload();
-      console.log('payload', payload);
       const userId = payload?.sub;
 
       if (!userId) {
@@ -73,15 +73,32 @@ export class AuthService {
   // Existing method for handling Google redirect
   async handleGoogleRedirect(
     code: string,
-  ): Promise<{ returnUrl: string; tokens: any }> {
-    const returnUrl = `${this.configService.get<string>('FRONT_URL')}/dashboard/mail`;
+    state: string,
+  ): Promise<{ returnUrl: string; tokens: any; userId?: string }> {
+    let isAddingAccount = false;
+    let existingUserId = null;
+
+    // Parse state parameter if it exists
+    if (state) {
+      try {
+        const stateObj = JSON.parse(decodeURIComponent(state));
+        isAddingAccount = stateObj.isAddingAccount || false;
+        existingUserId = stateObj.userId || null;
+      } catch (e) {
+        console.error('Error parsing state:', e);
+      }
+    }
+
+    const defaultReturnUrl = `${this.configService.get<string>('FRONT_URL')}/dashboard/mail`;
+    const accountsReturnUrl = `${this.configService.get<string>('FRONT_URL')}/dashboard/mail/accounts`;
 
     try {
+      // Get tokens from Google
       const { tokens } = await this.oauth2Client.getToken(code);
       this.oauth2Client.setCredentials(tokens);
 
+      // Get user info from Google
       const people = google.people({ version: 'v1', auth: this.oauth2Client });
-
       const me = await people.people.get({
         resourceName: 'people/me',
         personFields: 'emailAddresses,names,photos',
@@ -91,89 +108,180 @@ export class AuthService {
       const email = me.data.emailAddresses?.[0]?.value;
       const photo = me.data.photos?.[0]?.url;
 
+      if (!email) {
+        throw new Error('No email found in Google response');
+      }
+
       console.log(
         `User info: Name - ${firstName}, Email - ${email}, Photo - ${photo}`,
       );
 
-      const exists = await this.userHelpers.checkUserExists(email);
-      let newUser: User;
-      if (!exists) {
-        const profileType = new this.profileTypeModel({
-          description: 'description',
-          categories: [],
-        });
+      let user;
+      let account;
+      let isNewAccount = false;
 
-        await profileType.save();
+      // Check if account already exists with this email
+      account = await this.accountsModel.findOne({ email }).exec();
 
-        newUser = await this.userHelpers.createUser({
-          firstName,
-          email,
-          photo,
-          profileType,
-        });
+      if (isAddingAccount && existingUserId) {
+        // Case 1: Adding a new account to existing user
+        user = await this.userModel.findById(existingUserId).exec();
+        if (!user) {
+          throw new Error('User not found for adding account');
+        }
 
-        // returnUrl = `${process.env.FRONT_URL}/profile/register`;
-      }
+        // Check if this email is already connected to this user
+        if (account && account.userId.toString() === user._id.toString()) {
+          // Account already exists for this user, just update tokens
+          const existingToken = await this.tokenModel
+            .findById(account.tokenId)
+            .exec();
 
-      const user = await this.userModel.findOne({ email }).exec();
-      if (!user) throw new InternalServerErrorException('User not found');
-
-      user.lastConnection = Date.now(); // Update the lastConnection field
-
-      await user.save(); // Save the user back to the database
-
-      const existingToken = await this.tokenModel
-        .findOne({ userId: user._id })
-        .exec();
-
-      if (existingToken) {
-        Object.assign(existingToken, {
-          accessToken: tokens.access_token,
-          refreshToken: tokens.refresh_token,
-          scope: tokens.scope,
-          token_type: tokens.token_type,
-          id_token: tokens.id_token,
-          expiry_date: tokens.expiry_date,
-        });
-
-        await existingToken.save();
-      } else {
-        const newToken = new this.tokenModel({
-          userId: user._id,
-          accessToken: tokens.access_token,
-          refreshToken: tokens.refresh_token,
-          scope: tokens.scope,
-          token_type: tokens.token_type,
-          id_token: tokens.id_token,
-          expiry_date: tokens.expiry_date,
-        });
-
-        await newToken.save();
-      }
-
-      if (!exists) {
-        (async () => {
-          try {
-            // Execute retrieveEmailByLabels and then retrieve30daysEmail
-            await this.userHelpers.retrieveEmailByLabels(email);
-            await this.userHelpers.retrieve30daysEmail(email);
-          } catch (error) {
-            console.error('Error executing email retrieval functions:', error);
+          if (existingToken) {
+            Object.assign(existingToken, {
+              accessToken: tokens.access_token,
+              refreshToken: tokens.refresh_token,
+              scope: tokens.scope,
+              token_type: tokens.token_type,
+              id_token: tokens.id_token,
+              expiry_date: tokens.expiry_date,
+              updatedAt: new Date(),
+            });
+            await existingToken.save();
           }
-        })();
 
-        // Add a 5-second delay
-        await this.sleep(10000);
+          return {
+            returnUrl: accountsReturnUrl,
+            tokens,
+            userId: user._id.toString(),
+          };
+        } else if (account) {
+          // This email is already connected to a different user
+          throw new Error('This email is already associated with another user');
+        }
+        // If account doesn't exist, we'll create it below
       } else {
-        try {
-          this.userHelpers.retrieveEmailByLabels(email);
-          this.userHelpers.retrieve30daysEmail(email);
-        } catch (error) {
-          console.error('Error executing email retrieval functions 2:', error);
+        // Case 2: Normal sign-in flow
+        if (account) {
+          // Account exists, get the associated user
+          user = await this.userModel.findById(account.userId).exec();
+          if (!user) {
+            throw new Error('User not found for existing account');
+          }
+        } else {
+          // New user and new account
+          const profileType = new this.profileTypeModel({
+            description: 'description',
+            categories: [],
+          });
+          await profileType.save();
+
+          user = await this.userHelpers.createUser({
+            firstName,
+            email,
+            photo,
+            profileType: profileType._id,
+          });
+          isNewAccount = true;
         }
       }
 
-      return { returnUrl, tokens };
+      // Handle account creation or update
+      if (!account) {
+        // Create new token
+        const newToken = new this.tokenModel({
+          accessToken: tokens.access_token,
+          refreshToken: tokens.refresh_token,
+          scope: tokens.scope,
+          token_type: tokens.token_type,
+          id_token: tokens.id_token,
+          expiry_date: tokens.expiry_date,
+        });
+        await newToken.save();
+
+        // Create new account
+        const userAccounts = await this.accountsModel.countDocuments({
+          userId: user._id,
+        });
+        account = new this.accountsModel({
+          userId: user._id,
+          tokenId: newToken._id,
+          email: email,
+          lastConnection: Date.now(),
+          isPrimary: userAccounts === 0, // First account is primary
+        });
+        await account.save();
+
+        // Update token with accountId
+        newToken.accountId = account._id;
+        await newToken.save();
+
+        isNewAccount = true;
+      } else {
+        // Update existing token
+        const existingToken = await this.tokenModel
+          .findById(account.tokenId)
+          .exec();
+
+        if (existingToken) {
+          Object.assign(existingToken, {
+            accessToken: tokens.access_token,
+            refreshToken: tokens.refresh_token,
+            scope: tokens.scope,
+            token_type: tokens.token_type,
+            id_token: tokens.id_token,
+            expiry_date: tokens.expiry_date,
+            updatedAt: new Date(),
+          });
+          await existingToken.save();
+        }
+      }
+
+      // Update user's last connection
+      user.lastConnection = Date.now();
+      await user.save();
+
+      // Update account's last connection
+      account.lastConnection = Date.now();
+      await account.save();
+
+      // Retrieve emails for new accounts
+      if (isNewAccount) {
+        // For new accounts, wait for email retrieval
+        try {
+          await this.userHelpers.retrieveEmailByLabels(email);
+          await this.userHelpers.retrieve30daysEmail(email);
+          await this.sleep(5000);
+        } catch (error) {
+          console.error('Error executing email retrieval functions:', error);
+        }
+      } else {
+        // For existing accounts, run in background
+        this.userHelpers.retrieveEmailByLabels(email).catch((error) => {
+          console.error('Error retrieving emails by labels:', error);
+        });
+        this.userHelpers.retrieve30daysEmail(email).catch((error) => {
+          console.error('Error retrieving 30 days emails:', error);
+        });
+      }
+
+      // Return appropriate URL based on the action
+      const returnUrl = isAddingAccount ? accountsReturnUrl : defaultReturnUrl;
+
+      const tokenData = {
+        access_token: tokens.access_token,
+        refresh_token: tokens.refresh_token,
+        id_token: tokens.id_token,
+        expiry_date: tokens.expiry_date,
+        accountId: account._id,
+        email: account.email,
+      };
+
+      return {
+        returnUrl,
+        tokens: tokenData,
+        userId: user._id.toString(),
+      };
     } catch (error) {
       console.error('Error exchanging code for tokens', error);
       throw new InternalServerErrorException(
@@ -182,15 +290,17 @@ export class AuthService {
     }
   }
 
-  async refreshAccessToken(email: string): Promise<any> {
+  async refreshAccessToken(accountId: string): Promise<any> {
     try {
-      const user = await this.userModel.findOne({ email }).exec();
-      if (!user) {
-        throw new UnauthorizedException('User not found');
+      // Find the account
+      const account = await this.accountsModel.findById(accountId).exec();
+      if (!account) {
+        throw new UnauthorizedException('Account not found');
       }
 
+      // Find the token for this account
       const tokenRecord = await this.tokenModel
-        .findOne({ userId: user._id })
+        .findById(account.tokenId)
         .exec();
       if (!tokenRecord || !tokenRecord.refreshToken) {
         throw new UnauthorizedException('Refresh token not found');
@@ -207,6 +317,7 @@ export class AuthService {
       // Update the access token in the database
       tokenRecord.accessToken = credentials.access_token;
       tokenRecord.expiry_date = credentials.expiry_date;
+      tokenRecord.id_token = credentials.id_token;
       await tokenRecord.save();
 
       // Return the new access token and refresh token
@@ -215,6 +326,8 @@ export class AuthService {
         refresh_token: tokenRecord.refreshToken, // We keep the same refresh token
         id_token: credentials.id_token, // if ID token is provided
         expiry_date: credentials.expiry_date,
+        accountId: account._id,
+        email: account.email,
       };
     } catch (error) {
       console.error('Error refreshing access token:', error);

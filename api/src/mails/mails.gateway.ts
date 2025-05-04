@@ -31,16 +31,11 @@ export class MailsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const token = clientSocket.handshake.query.token as string;
       const refreshToken = clientSocket.handshake.query.refresh_token as string;
 
-      console.log('handleConnection -> token', token);
-      console.log('handleConnection -> refreshToken', refreshToken);
-
       if (!token) {
         throw new UnauthorizedException('No token provided');
       }
 
       let userInfo = await this.verifyAccessToken(token);
-
-      console.log('userInfo: ', userInfo);
 
       // If the token is expired, try to refresh it
       if (!userInfo) {
@@ -59,7 +54,6 @@ export class MailsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       // Check if we got the user's info
       if (userInfo && userInfo.sub) {
         const userId = userInfo.sub;
-        console.log('User ID:', userId);
         clientSocket.data.user = { id: userId, email: userInfo.email };
 
         // Join the user-specific room
@@ -115,7 +109,6 @@ export class MailsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   // Example function to emit updates to a specific user's room
   sendMailUpdateToUser(userId: string, fieldsToUpdate: any, mailId) {
-    console.log('Sending mail update to user:', userId, fieldsToUpdate);
     this.server.to(userId).emit('mail_update', {
       _id: mailId,
       ...fieldsToUpdate,
@@ -124,7 +117,6 @@ export class MailsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   sendThreadUpdateToUser(userId: string, fieldsToUpdate: any, mailId) {
-    console.log('Sending thread update to user:', userId, fieldsToUpdate);
     this.server.to(userId).emit('thread_update', {
       _id: mailId,
       ...fieldsToUpdate,
@@ -133,7 +125,6 @@ export class MailsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   sendMailDetailUpdateToUser(userId: string, fieldsToUpdate: any, mailId) {
-    console.log('Sending mail update to user:', userId, fieldsToUpdate);
     this.server.to(userId).emit('mail_detail_update', {
       _id: mailId,
       ...fieldsToUpdate,
@@ -141,24 +132,20 @@ export class MailsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   sendAddThreadToUser(userId: string, newEmail) {
-    console.log('Sending mail add to user:', userId);
     this.server.to(userId).emit('mail_add_thread', newEmail);
   }
 
   sendAddThreadToUserImportant(userId: string, newEmail) {
-    console.log('Sending mail add to user:', userId);
     this.server.to(userId).emit('mail_add_thread_important', newEmail);
   }
 
   sendDeleteThreadToUserImportant(userId: string, threadId) {
-    console.log('Sending mail update to user:', userId);
     this.server.to(userId).emit('mail_delete_thread_important', {
       _id: threadId,
     });
   }
 
   sendDeleteThreadToUser(userId: string, threadId) {
-    console.log('Sending mail update to user:', userId);
     this.server.to(userId).emit('mail_delete_thread', {
       _id: threadId,
     });

@@ -3,8 +3,8 @@ import { Document, Types } from 'mongoose';
 
 @Schema({ timestamps: true })
 export class Token extends Document {
-  @Prop({ type: Types.ObjectId, ref: 'User' })
-  userId: Types.ObjectId;
+  @Prop({ type: Types.ObjectId, ref: 'Account' })
+  accountId: Types.ObjectId;
 
   @Prop({ required: false })
   accessToken: string;

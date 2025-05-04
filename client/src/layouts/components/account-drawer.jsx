@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
@@ -22,22 +22,44 @@ import { Scrollbar } from 'src/components/scrollbar';
 import { AnimateAvatar } from 'src/components/animate';
 
 import { useAuthContext } from 'src/auth/hooks';
+import { CONFIG } from 'src/config-global';
 
 import { AccountButton } from './account-button';
 import { SignOutButton } from './sign-out-button';
+import { AddAccountButton } from './addAccount';
+
+import { Check, ChevronsUpDown } from 'lucide-react';
+
+import { cn } from 'src/s/lib/utils';
+import { Button } from 'src/s/components/ui/button';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from 'src/s/components/ui/command';
 
 // ----------------------------------------------------------------------
 
 export function AccountDrawer({ data = [], sx, ...other }) {
   const theme = useTheme();
-
   const router = useRouter();
-
   const pathname = usePathname();
-
-  const { user } = useAuthContext();
+  const { user, checkUserSession } = useAuthContext();
 
   const [open, setOpen] = useState(false);
+  const [openComboBox, setOpenComboBox] = useState(false);
+  const [switching, setSwitching] = useState(false);
+  const [value, setValue] = useState(user?.currentAccount?.email);
+
+  // Update value when user changes
+  useEffect(() => {
+    if (user?.currentAccount?.email) {
+      setValue(user.currentAccount.email);
+    }
+  }, [user?.currentAccount?.email]);
 
   const handleOpenDrawer = useCallback(() => {
     setOpen(true);
@@ -54,6 +76,36 @@ export function AccountDrawer({ data = [], sx, ...other }) {
     },
     [handleCloseDrawer, router]
   );
+
+  const handleSwitchAccount = async (accountId) => {
+    if (switching) return;
+
+    setSwitching(true);
+    try {
+      const response = await fetch(`${CONFIG.site.serverUrl}/api/auth/switch-account`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ accountId }),
+      });
+
+      if (response.ok) {
+        // Re-check user session to update with new account
+        await checkUserSession();
+        // Optionally reload the page to refresh all data
+        // window.location.reload();
+      } else {
+        const error = await response.json();
+        console.error('Failed to switch account:', error.message);
+      }
+    } catch (error) {
+      console.error('Error switching account:', error);
+    } finally {
+      setSwitching(false);
+    }
+  };
 
   const renderAvatar = (
     <AnimateAvatar
@@ -73,9 +125,8 @@ export function AccountDrawer({ data = [], sx, ...other }) {
 
   const renderBadge = (
     <div className="flex flex-row items-center justify-center gap-1">
-      {user?.badgesList.map((element) => (
-        <div>
-          {' '}
+      {user?.badgesList?.map((element) => (
+        <div key={element._id}>
           <Image
             src={`/logo/${element.iconImage}`}
             alt="Badge"
@@ -85,6 +136,110 @@ export function AccountDrawer({ data = [], sx, ...other }) {
           />
         </div>
       ))}
+    </div>
+  );
+
+  const popoverRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (popoverRef.current && !popoverRef.current.contains(event.target)) {
+        setOpenComboBox(false);
+      }
+    };
+
+    if (openComboBox) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [openComboBox]);
+
+  const handleComboBoxToggle = (e) => {
+    e.stopPropagation();
+    setOpenComboBox(!openComboBox);
+  };
+
+  const handleComboBoxSelect = async (selectedEmail) => {
+    const selectedAccount = user?.accounts.find((account) => account.email === selectedEmail);
+
+    if (selectedAccount && selectedAccount.accountId !== user?.currentAccount?.accountId) {
+      setValue(selectedEmail);
+      setOpenComboBox(false);
+      await handleSwitchAccount(selectedAccount.accountId);
+    } else {
+      setOpenComboBox(false);
+    }
+  };
+
+  const renderAccounts = (
+    <div ref={popoverRef} style={{ position: 'relative', display: 'inline-block' }}>
+      <Button
+        variant="outline"
+        role="combobox"
+        aria-expanded={openComboBox}
+        className="w-[250px] justify-between rounded"
+        onClick={handleComboBoxToggle}
+        disabled={switching}
+      >
+        {switching ? (
+          <span>Switching...</span>
+        ) : (
+          <>
+            {value || 'Select account...'}
+            <ChevronsUpDown className="opacity-50" />
+          </>
+        )}
+      </Button>
+      {openComboBox && (
+        <div
+          className="rounded"
+          style={{
+            position: 'absolute',
+            top: '100%',
+            left: 0,
+            zIndex: 1000,
+            width: '250px',
+            backgroundColor: 'white',
+            borderRadius: '6px',
+            marginTop: '4px',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Command>
+            <CommandList>
+              <CommandEmpty>No accounts found.</CommandEmpty>
+              <CommandGroup>
+                {user?.accounts?.map((account) => (
+                  <CommandItem
+                    key={account.accountId}
+                    value={account.email}
+                    onSelect={() => handleComboBoxSelect(account.email)}
+                  >
+                    <div className="flex items-center justify-between w-full">
+                      <span>{account.email}</span>
+                      <div className="flex items-center gap-2">
+                        {account.isPrimary && (
+                          <span className="text-xs text-muted-foreground">(Primary)</span>
+                        )}
+                        <Check
+                          className={cn(
+                            'ml-2',
+                            value === account.email ? 'opacity-100' : 'opacity-0'
+                          )}
+                        />
+                      </div>
+                    </div>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </div>
+      )}
     </div>
   );
 
@@ -116,10 +271,6 @@ export function AccountDrawer({ data = [], sx, ...other }) {
         <Scrollbar>
           <Stack alignItems="center" sx={{ pt: 8, pb: 3 }}>
             {renderAvatar}
-
-            <Typography variant="subtitle1" noWrap sx={{ mt: 2 }}>
-              {user?.displayName}
-            </Typography>
             <Typography
               variant="body1"
               sx={{
@@ -134,6 +285,12 @@ export function AccountDrawer({ data = [], sx, ...other }) {
               {user?.levelTitle}
             </Typography>
             {renderBadge}
+            <div className="mt-3 flex flex-col gap-3 items-end">
+              <div>{renderAccounts}</div>
+              <div>
+                <AddAccountButton />
+              </div>
+            </div>
           </Stack>
 
           <Stack
@@ -146,7 +303,6 @@ export function AccountDrawer({ data = [], sx, ...other }) {
           >
             {data.map((option) => {
               const rootLabel = pathname.includes('/dashboard') ? 'Home' : 'Dashboard';
-
               const rootHref = pathname.includes('/dashboard') ? '/' : paths.dashboard.root;
 
               return (

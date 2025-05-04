@@ -29,13 +29,9 @@ export function useSearchEmails(query, email) {
 export function useSearchSuggestion(userEmail) {
   const URL = userEmail && [endpoints.search.suggestion, { params: { userEmail } }];
 
-  console.log('URL', URL);
-
   const { data, isLoading, error, isValidating } = useSWR(URL, fetcher, {
     keepPreviousData: true,
   });
-
-  console.log('data', data);
 
   const memoizedValue = useMemo(
     () => ({
