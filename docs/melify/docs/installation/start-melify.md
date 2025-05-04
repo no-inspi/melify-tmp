@@ -14,7 +14,7 @@ Before starting Melify, ensure you have:
 - ✅ MongoDB running locally or connection details ready
 
 :::caution Important
-If you haven't completed the installation steps, please go back to the [Installation Guide](./installation) first. The application won't start properly without the necessary configuration.
+If you haven't completed the installation steps, please go back to the [Installation Guide](./prerequisites) first. The application won't start properly without the necessary configuration.
 :::
 
 ## Step 1: Start Required Services
@@ -98,5 +98,3 @@ Coming soon!
 ---
 
 💡 **Tip**: Use `npm run dev` for a development environment with enhanced debugging capabilities and faster rebuilds.
-
-🔍 **Note**: If you encounter any issues not covered here, please check our [Troubleshooting Guide](./troubleshooting) or open an issue on GitHub.
