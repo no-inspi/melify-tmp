@@ -7,7 +7,6 @@
     "start:frontend": "cd client && npm run dev",
     "start:backend": "cd api && npm run start:debug",
     "start": "concurrently \"npm run start:frontend\" \"npm run start:backend\"",
-    "install": "concurrently \"npm run install:frontend\" \"npm run install:backend\"",
     "install:frontend": "cd client && npm install",
     "install:backend": "cd api && npm install"
   },

@@ -185,7 +185,6 @@ export class UserHelpers {
       }
     } catch (error) {
       console.error('Error calling Cloud Function:', error.message);
-      throw error; // Rethrow the error for further handling
     }
   }
 

@@ -116,14 +116,22 @@ def retrieve_email_by_labels(request):
         tokens_collection = db['tokens']
         users_collection = db['users']
         profiletypes_collection = db['profiletypes']
+        accounts_collection = db['accounts']
+        
+        existing_account = accounts_collection.find_one({'email': user_email})
+        
+        # Check if account exists
+        if not existing_account:
+            print(f"No account found for email: {user_email}")
+            return None
+        
+        print(f"Existing account: {existing_account}")
         
         user = get_user_by_email(user_email, users_collection)
                 
-        service = get_gmail_service(tokens_collection, user['_id'])
+        service = get_gmail_service(tokens_collection, existing_account['_id'])
         
         labels = get_user_labels(service)
-        
-        
         
         if not labels:
             return jsonify({'status': 'warning', 'message': 'No labels found for this user.'}), 200
@@ -190,9 +198,9 @@ def get_user_by_email(email, users_collection):
     user = users_collection.find_one({'email': email})
     return user
 
-def get_gmail_service(tokens_collection, userId):
+def get_gmail_service(tokens_collection, accountId):
     # Retrieve access token from MongoDB
-    token_data = tokens_collection.find_one({"userId": userId})
+    token_data = tokens_collection.find_one({"accountId": accountId})
     access_token = token_data['accessToken']
 
     # Use the access token to authenticate Gmail API
