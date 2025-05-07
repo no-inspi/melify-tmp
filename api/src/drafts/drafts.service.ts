@@ -122,8 +122,6 @@ export class DraftsService {
 
       const draftEmail = await this.emailModel.findOne({ draftId: draftId });
 
-      console.log('draftEmail: ', draftEmail);
-
       if (response.status === 200 || response.status === 204) {
         // Emit mail update event to the user
         this.mailsGateway.sendDeleteThreadToUser(userId, draftEmail.threadId);

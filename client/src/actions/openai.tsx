@@ -2,7 +2,10 @@
 
 import { streamText } from 'ai';
 import { openai } from '@ai-sdk/openai';
+import { mistral } from '@ai-sdk/mistral';
 import { createStreamableValue } from 'ai/rsc';
+
+const mistralModel = mistral('ministral-8b-latest');
 
 export async function generateRephrase(selectedText: string, text: string) {
   const instructions = `
@@ -23,7 +26,7 @@ export async function generateRephrase(selectedText: string, text: string) {
 
   (async () => {
     const { textStream } = streamText({
-      model: openai('gpt-4-turbo'),
+      model: mistralModel,
       prompt: instructions,
     });
 
@@ -66,7 +69,7 @@ export async function generateContinuation(text: string) {
 
   (async () => {
     const { textStream } = streamText({
-      model: openai('gpt-4-turbo'),
+      model: mistralModel,
       prompt: instructions,
     });
 
@@ -284,7 +287,7 @@ export async function generateRefactor(selectedText: string, text: string, actio
 
   (async () => {
     const { textStream } = streamText({
-      model: openai('gpt-4-turbo'),
+      model: mistralModel,
       prompt: instructions,
     });
 
