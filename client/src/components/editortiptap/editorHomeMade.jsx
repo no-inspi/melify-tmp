@@ -54,6 +54,8 @@ const extensions = [
 ];
 
 export function Editor({ content, handleChangeContent }) {
+  const [editorContent, setEditorContent] = useState(content);
+
   const { messages, input, handleInputChange, handleSubmit } = useChat({
     api: '/api/chat',
     onError: (e) => {
@@ -64,20 +66,39 @@ export function Editor({ content, handleChangeContent }) {
   // Initialize the editor instance
   const editor = useEditor({
     extensions: extensions,
-    content: content,
+    content: editorContent,
     onUpdate: ({ editor }) => {
-      const updatedContent = editor.getHTML(); // Get updated content as HTML
-      handleChangeContent(updatedContent); // Update state with the new content
+      const updatedContent = editor.getHTML();
+      // Only update if content has changed to avoid infinite loops
+      if (updatedContent !== editorContent) {
+        setEditorContent(updatedContent);
+        handleChangeContent(updatedContent);
+      }
     },
   });
 
+  // Update editor content when messages change
   useEffect(() => {
     if (editor && messages.length > 1) {
       const lastMessage = messages[messages.length - 1].content;
-      editor.chain().clearContent().insertContent(lastMessage).focus().run();
+      // Check if the content is different to avoid unnecessary updates
+      if (lastMessage !== editorContent) {
+        editor.commands.setContent(lastMessage);
+        setEditorContent(lastMessage);
+        handleChangeContent(lastMessage);
+      }
     }
   }, [messages, editor]);
 
+  // Update editor when content prop changes
+  useEffect(() => {
+    if (editor && content !== editorContent) {
+      setEditorContent(content);
+      editor.commands.setContent(content);
+    }
+  }, [content, editor]);
+
+  // Cleanup effect
   useEffect(() => {
     return () => {
       if (editor) {
@@ -90,7 +111,6 @@ export function Editor({ content, handleChangeContent }) {
     if (event.key === 'Enter' && !event.shiftKey) {
       console.log('entered', input);
       event.preventDefault();
-
       await handleSubmit();
     }
   };
@@ -425,119 +445,6 @@ const MenuBar = ({ editor, input, handleInputChange, handleKeyDown }) => {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      {/* <button
-        onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-        className={`h-7 w-7 border rounded hover:bg-[hsl(var(--select-button))] hover:text-[hsl(var(--select-button-foreground))]  ${
-          editor.isActive('heading', { level: 1 })
-            ? 'bg-[hsl(var(--select-button))] text-[hsl(var(--select-button-foreground))]'
-            : 'bg-white text-black'
-        }`}
-      >
-        <span className="inline text-base">h</span>
-        <span className="inline text-xs">1</span>
-      </button>
-      <button
-        onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-        className={`h-7 w-7 border rounded hover:bg-[hsl(var(--select-button))] hover:text-[hsl(var(--select-button-foreground))] ${
-          editor.isActive('heading', { level: 2 })
-            ? 'bg-[hsl(var(--select-button))] text-[hsl(var(--select-button-foreground))]'
-            : 'bg-white text-black'
-        }`}
-      >
-        <span className="inline text-base">h</span>
-        <span className="inline text-xs">2</span>
-      </button>
-      <button
-        onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-        className={`h-7 w-7 border rounded hover:bg-[hsl(var(--select-button))] hover:text-[hsl(var(--select-button-foreground))] ${
-          editor.isActive('heading', { level: 3 })
-            ? 'bg-[hsl(var(--select-button))] text-[hsl(var(--select-button-foreground))]'
-            : 'bg-white text-black'
-        }`}
-      >
-        <span className="inline text-base">h</span>
-        <span className="inline text-xs">3</span>
-      </button>
-      <button
-        onClick={() => editor.chain().focus().setParagraph().run()}
-        className={`h-7 w-7 border rounded hover:bg-[hsl(var(--select-button))] hover:text-[hsl(var(--select-button-foreground))] ${
-          editor.isActive('paragraph')
-            ? 'bg-[hsl(var(--select-button))] text-[hsl(var(--select-button-foreground))]'
-            : 'bg-white text-black'
-        }`}
-      >
-        <span className="inline text-base">P</span>
-      </button>
-      <button
-        onClick={() => editor.chain().focus().toggleBold().run()}
-        className={`h-7 w-7 border rounded hover:bg-[hsl(var(--select-button))] hover:text-[hsl(var(--select-button-foreground))] font-bold ${
-          editor.isActive('bold')
-            ? 'bg-[hsl(var(--select-button))] text-[hsl(var(--select-button-foreground))]'
-            : 'bg-white text-black'
-        }`}
-      >
-        B
-      </button>
-      <button
-        onClick={() => editor.chain().focus().toggleItalic().run()}
-        className={`h-7 w-7 border rounded hover:bg-[hsl(var(--select-button))] hover:text-[hsl(var(--select-button-foreground))] italic ${
-          editor.isActive('italic')
-            ? 'bg-[hsl(var(--select-button))] text-[hsl(var(--select-button-foreground))]'
-            : 'bg-white text-black'
-        }`}
-      >
-        i
-      </button>
-      <button
-        onClick={() => editor.chain().focus().toggleStrike().run()}
-        className={`h-7 w-7 border rounded hover:bg-[hsl(var(--select-button))] hover:text-[hsl(var(--select-button-foreground))] line-through ${
-          editor.isActive('strike')
-            ? 'bg-[hsl(var(--select-button))] text-[hsl(var(--select-button-foreground))]'
-            : 'bg-white text-black'
-        }`}
-      >
-        W
-      </button>
-      <button
-        onClick={() => editor.chain().focus().toggleHighlight().run()}
-        className={`h-7 w-7 border rounded hover:bg-[hsl(var(--select-button))] hover:text-[hsl(var(--select-button-foreground))] ${
-          editor.isActive('highlight')
-            ? 'bg-[hsl(var(--select-button))] text-[hsl(var(--select-button-foreground))]'
-            : 'bg-white text-black'
-        }`}
-      >
-        <Iconify icon="material-symbols-light:format-ink-highlighter" />
-      </button>
-      <button
-        onClick={() => editor.chain().focus().toggleOrderedList().run()}
-        className={`h-7 w-7 border rounded flex flex-row items-center hover:bg-[hsl(var(--select-button))] hover:text-[hsl(var(--select-button-foreground))] ${
-          editor.isActive('orderedList')
-            ? 'bg-[hsl(var(--select-button))] text-[hsl(var(--select-button-foreground))]'
-            : 'bg-white text-black'
-        }`}
-      >
-        <Iconify icon="tabler:list-numbers" />
-      </button>
-      <button
-        onClick={() => editor.chain().focus().toggleBulletList().run()}
-        className={`h-7 w-7 border rounded hover:bg-[hsl(var(--select-button))] hover:text-[hsl(var(--select-button-foreground))] ${
-          editor.isActive('bulletList')
-            ? 'bg-[hsl(var(--select-button))] text-[hsl(var(--select-button-foreground))]'
-            : 'bg-white text-black'
-        }`}
-      >
-        <Iconify icon="tabler:list" />
-      </button>
-      <button
-        onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-        className={`h-7 w-7 border rounded hover:bg-[hsl(var(--select-button))] hover:text-[hsl(var(--select-button-foreground))] ${
-          editor.isActive('codeBlock')
-            ? 'bg-[hsl(var(--select-button))] text-[hsl(var(--select-button-foreground))]'
-            : 'bg-white text-black'
-        }`}
-      >
-        <Iconify icon="mingcute:code-line" />
-      </button> */}
     </div>
   );
 };
