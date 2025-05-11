@@ -237,3 +237,76 @@ export function fSub({
 
   return result;
 }
+
+/**
+ * Formats date range in the style "When jeu 8mai 2025 18:30 - 19h30"
+ *
+ * @param {string} startTimeISO - ISO date string for start time (e.g. "2025-05-09T20:30:00+02:00")
+ * @param {string} endTimeISO - ISO date string for end time (e.g. "2025-05-09T21:30:00+02:00")
+ * @param {string} locale - Locale to use for formatting (default: 'fr-FR')
+ * @returns {string} Formatted date range string
+ */
+export function formatEventDateRange(startTimeISO, endTimeISO, locale = 'fr-FR') {
+  if (!startTimeISO || !endTimeISO) {
+    return '';
+  }
+
+  try {
+    // Parse ISO strings to Date objects
+    const startDate = new Date(startTimeISO);
+    const endDate = new Date(endTimeISO);
+
+    // Check if dates are valid
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+      return '';
+    }
+
+    // Get day of week in French (e.g., "jeu" for Thursday)
+    const dayOfWeek = startDate.toLocaleDateString(locale, { weekday: 'short' }).toLowerCase();
+
+    // Get day and month (e.g., "8mai")
+    const day = startDate.getDate();
+    const month = startDate.toLocaleDateString(locale, { month: 'short' }).toLowerCase();
+
+    // Get year
+    const year = startDate.getFullYear();
+
+    // Get start time (e.g., "18:30")
+    const startTime = startDate.toLocaleTimeString(locale, {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
+
+    // For end time, check if it's on the same day
+    const sameDay =
+      startDate.getDate() === endDate.getDate() &&
+      startDate.getMonth() === endDate.getMonth() &&
+      startDate.getFullYear() === endDate.getFullYear();
+
+    // Get end time (e.g., "19h30")
+    const endTime = endDate
+      .toLocaleTimeString(locale, {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      })
+      .replace(':', 'h');
+
+    // If not same day, include full date for end time
+    if (!sameDay) {
+      const endDayOfWeek = endDate.toLocaleDateString(locale, { weekday: 'short' }).toLowerCase();
+      const endDay = endDate.getDate();
+      const endMonth = endDate.toLocaleDateString(locale, { month: 'short' }).toLowerCase();
+      const endYear = endDate.getFullYear();
+
+      return `${dayOfWeek} ${day}${month} ${year} ${startTime} - ${endDayOfWeek} ${endDay}${endMonth} ${endYear} ${endTime}`;
+    }
+
+    // Same day format
+    return `${dayOfWeek} ${day}${month} ${year} ${startTime} - ${endTime}`;
+  } catch (error) {
+    console.error('Error formatting date range:', error);
+    return 'Invalid date format';
+  }
+}

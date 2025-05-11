@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import * as cheerio from 'cheerio';
 import { jellyTriangle } from 'ldrs';
 import { useRef, useState, useEffect, useCallback } from 'react';
+import axios from 'axios';
 
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
@@ -30,6 +31,7 @@ import { extractEmail, extractResponseEmails } from 'src/utils/text_utils';
 // import { useToast } from 'src/s/hooks/use-toast.ts';
 import { toast } from 'sonner';
 
+import { Separator } from 'src/s/components/ui/separator.tsx';
 import { Button as ButtonShadcn } from 'src/s/components/ui/button.tsx';
 import {
   TooltipContent,
@@ -58,6 +60,7 @@ import FileThumbnail from 'src/components/file-thumbnail';
 import EmailAutoComplete from 'src/components/autocomplete';
 import { Editor as EditorTipTap } from 'src/components/editortiptap/';
 import { Email } from 'src/components/email';
+import CalendarEvent from 'src/components/calendar-event';
 
 // auth
 import { useAuthContext } from 'src/auth/hooks';
@@ -82,8 +85,6 @@ export function MailDetails({
 }) {
   const { user } = useAuthContext();
 
-  // const { toast } = useToast();
-
   const { toGlobalEmails, ccGlobalEmails, bccGlobalEmails } = extractResponseEmails(mail, user);
   const mailDetail = mail !== undefined ? mail[mail.length - 1] : '';
   const showAttachments = useBoolean(false);
@@ -102,9 +103,12 @@ export function MailDetails({
   const [replyMode, setReplyMode] = useState('');
   const [attachments, setAttachments] = useState([]);
 
-  const scrollRef = useRef(null);
+  // Calendar Events
+  const [calendarEvent, setCalendarEvent] = useState(null);
+  const [isLoadingEvent, setIsLoadingEvent] = useState(false);
+  const [eventError, setEventError] = useState(null);
 
-  // const { enqueueSnackbar } = useSnackbar();
+  const scrollRef = useRef(null);
 
   useEffect(() => {
     setAnswer(mailDetail?.chatgptprop ? mailDetail.chatgptprop : '');
@@ -115,6 +119,42 @@ export function MailDetails({
       scrollToBottom();
     }
   }, [mail, mailDetail, threadMail]);
+
+  // calendar events useEffect
+  // Effect to fetch calendar event when mail changes
+  useEffect(() => {
+    // Function to fetch calendar event data
+    const fetchCalendarEvent = async () => {
+      // Check if mail array exists and has at least one item
+      if (!mail || !Array.isArray(mail) || mail.length === 0) {
+        return;
+      }
+
+      const firstEmail = mail[0];
+      console.log('firstEmail', firstEmail);
+      // Check if it's a calendar invitation and has an eventId
+      if (firstEmail.isGoogleInvitation && firstEmail.eventId) {
+        setIsLoadingEvent(true);
+        setEventError(null);
+        console.log('Fetching calendar event for eventId:', firstEmail.eventId);
+        try {
+          // Make API call to your backend endpoint
+          const response = await axios.get(
+            `http://localhost:8080/api/calendar/${firstEmail.eventId}`
+          );
+
+          setCalendarEvent(response.data);
+        } catch (error) {
+          console.error('Error fetching calendar event:', error);
+          setEventError(error.message || 'Failed to load calendar event');
+        } finally {
+          setIsLoadingEvent(false);
+        }
+      }
+    };
+
+    fetchCalendarEvent();
+  }, [mail]);
 
   const handleChangeContent = (value) => {
     setContentData(value);
@@ -219,7 +259,6 @@ export function MailDetails({
     });
 
   const handleChange = async (categoryTmp, statusInput) => {
-    console.log('event', categoryTmp);
     handleUpdateCategoryAndStatus(categoryTmp, statusInput);
     setCategory(categoryTmp);
   };
@@ -381,9 +420,6 @@ export function MailDetails({
           </Tooltip>
         </Box>
         {category && (
-          // <>
-          //   <UnstyledSelectForm value={category} options={CATEGORIES} handleChange={handleChange} />
-          // </>
           <Box
             sx={{
               display: 'flex',
@@ -392,15 +428,8 @@ export function MailDetails({
               gap: '2px',
             }}
           >
-            {/* {categoryEditing ? ( */}
             <>
               {CATEGORIES.includes(category.toLowerCase()) ? (
-                // <UnstyledSelectForm
-                //   value={category}
-                //   options={CATEGORIES}
-                //   handleChange={handleChange}
-                //   tagMapping={tagMapping}
-                // />
                 <Combobox
                   value={category}
                   options={CATEGORIES}
@@ -427,50 +456,6 @@ export function MailDetails({
                 </Label>
               )}
             </>
-            {/* ) : (
-              <Label
-                key={mailDetail._id}
-                sx={{
-                  padding: '2px 7px',
-                  fontWeight: '900',
-                  letterSpacing: '0.6px',
-                  // color: tagMapping[msg.toLowerCase()].color
-                  bgcolor: alpha(tagMapping[category?.toLowerCase()]?.bgcolor, 0.3),
-                  color: (theme) =>
-                    theme.palette.mode === 'light'
-                      ? darken(tagMapping[category?.toLowerCase()]?.bgcolor, 0.8)
-                      : lighten(tagMapping[category?.toLowerCase()]?.bgcolor, 0.8),
-                }}
-              >
-                {tagMapping[category.toLowerCase()].name}
-              </Label>
-            )} */}
-
-            {/* <Tooltip title="Update category">
-              <IconButton onClick={() => setCategoryEditing(!categoryEditing)} color="red">
-                {categoryEditing ? (
-                  <Iconify
-                    onClick={handleUpdateCategory}
-                    icon="tabler:square-check-filled"
-                    style={{
-                      color: alpha(
-                        tagMapping[
-                          threadCategory.toLowerCase() || mailDetail?.category.toLowerCase()
-                        ].bgcolor,
-                        1
-                      ),
-                    }}
-                  />
-                ) : (
-                  <Iconify
-                    icon="tabler:edit"
-                    style={{
-                      color: alpha(tagMapping[category.toLowerCase()].bgcolor, 1),
-                    }}
-                  />
-                )}
-              </IconButton>
-            </Tooltip> */}
           </Box>
         )}
       </Stack>
@@ -540,25 +525,6 @@ export function MailDetails({
           />
         </Tooltip>
 
-        {/* <Checkbox
-          color="warning"
-          icon={<Iconify icon="material-symbols:label-important-rounded" />}
-          checkedIcon={<Iconify icon="material-symbols:label-important-rounded" />}
-          checked={mailDetail.isImportant}
-        /> */}
-
-        {/* <Tooltip title="Archive">
-          <IconButton>
-            <Iconify icon="solar:archive-down-minimlistic-bold" />
-          </IconButton>
-        </Tooltip> */}
-
-        {/* <Tooltip title="Mark Unread">
-          <IconButton>
-            <Iconify icon="fluent:mail-unread-20-filled" />
-          </IconButton>
-        </Tooltip> */}
-
         <Tooltip title="Delete">
           <IconButton
             onClick={(e) => {
@@ -569,10 +535,6 @@ export function MailDetails({
             <Iconify icon="solar:trash-bin-trash-bold" />
           </IconButton>
         </Tooltip>
-        {/* 
-        <IconButton>
-          <Iconify icon="eva:more-vertical-fill" />
-        </IconButton> */}
       </Stack>
     </Stack>
   );
@@ -679,11 +641,6 @@ export function MailDetails({
             sx={{ ml: 0.5 }}
           />
         </ButtonBase>
-
-        {/* <Button startIcon={<Iconify icon="eva:cloud-download-fill" />} onClick={handleDownload}>
-          {' '}
-          Download
-        </Button> */}
       </Stack>
 
       <Collapse in={showAttachments.value} unmountOnExit timeout="auto">
@@ -819,19 +776,9 @@ export function MailDetails({
                       body={mailD.html !== '' ? extractNewContent(mailD.html) : mailD.text}
                     />
                   </div>
-                  {/* <Markdown
-                    message={mailD.html !== '' ? extractNewContent(mailD.html) : mailD.text}
-                    sx={{
-                      px: 2,
-                      py: 1,
-                      // backgroundColor: 'grey.300',
-                      backgroundColor: 'hsl(var(--black-background))',
-                    }}
-                  /> */}
                 </Box>
               </Box>
             </Box>
-            {/* <Divider sx={{ borderStyle: 'dashed', borderColor: 'white' }} /> */}
           </>
         );
       })}
@@ -875,19 +822,7 @@ export function MailDetails({
         </Tooltip>
       </Box>
 
-      {/* <Editor
-        simple
-        id="reply-mail"
-        placeholder="Send a response ..."
-        onChange={handleChangeAnswer}
-        value={answer}
-        sx={{
-          marginTop: 0.5,
-          '.ql-editor': { height: '150px' },
-        }}
-      /> */}
       <Box sx={{ py: 1 }}>
-        {/* <Editor height={200} onChange={handleEditorChange} /> */}
         <EditorTipTap
           content={contentData}
           handleChangeContent={handleChangeContent}
@@ -901,42 +836,6 @@ export function MailDetails({
             <Iconify icon="eva:attach-2-fill" />
             <input type="file" multiple style={{ display: 'none' }} onChange={handleFileChange} />
           </IconButton>
-          {/* <IconButton onClick={testAttachments}>
-            <Iconify icon="eva:attach-2-fill" />
-          </IconButton> */}
-          {/* <IconButton
-            aria-owns={hoverPopoverAI.open ? 'mouse-over-popover' : undefined}
-            aria-haspopup="true"
-            onMouseEnter={hoverPopoverAI.onOpen}
-            onMouseLeave={hoverPopoverAI.onClose}
-            onClick={() => handleClickGenerateWithAi(mailDetail._id)}
-          >
-            <Iconify icon="bi:filetype-ai" />
-          </IconButton>
-          <Popover
-            id="mouse-over-popover"
-            open={Boolean(hoverPopoverAI.open)}
-            anchorEl={hoverPopoverAI.open}
-            anchorOrigin={{
-              vertical: 'bottom',
-              horizontal: 'left',
-            }}
-            transformOrigin={{
-              vertical: 'top',
-              horizontal: 'left',
-            }}
-            onClose={hoverPopoverAI.onClose}
-            disableRestoreFocus
-            sx={{
-              pointerEvents: 'none',
-            }}
-          >
-            <Box sx={{ p: 2 }}>
-              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                Génération de contenu avec IA
-              </Typography>
-            </Box>
-          </Popover> */}
         </Stack>
 
         <TooltipProvider delayDuration={0}>
@@ -964,6 +863,10 @@ export function MailDetails({
         </TooltipProvider>
       </Stack>
     </Stack>
+  );
+
+  const renderCalendarInvitation = (
+    <CalendarEvent calendarEvent={calendarEvent} setCalendarEvent={setCalendarEvent} mail={mail} />
   );
 
   const renderFeed = (
@@ -1029,6 +932,7 @@ export function MailDetails({
           {mail.some((mailItem) => mailItem.attachments?.length > 0) && (
             <Stack sx={{ px: 0, position: 'sticky', p: 0 }}>{renderAttachments}</Stack>
           )}
+          {mail.some((mailItem) => mailItem.isGoogleInvitation == true) && renderCalendarInvitation}
           <Scrollbar sx={{ flex: 1 }} ref={scrollRef}>
             {renderContent}
 

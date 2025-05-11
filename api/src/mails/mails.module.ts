@@ -41,11 +41,11 @@ import { UsersModule } from '../users/users.module'; // Import UsersModule
     MongooseModule.forFeature([
       { name: MailsInteraction.name, schema: MailsInteractionSchema },
     ]),
-    AuthModule, // Import AuthModule to use AuthService
+    AuthModule,
     UsersModule,
   ],
   controllers: [MailsController],
-  providers: [MailsService, TemplateService, MailsGateway], // Remove AuthService from providers
+  providers: [MailsService, TemplateService, MailsGateway],
   exports: [MailsGateway],
 })
 export class MailsModule implements NestModule {

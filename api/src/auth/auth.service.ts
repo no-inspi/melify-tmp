@@ -249,7 +249,7 @@ export class AuthService {
       if (isNewAccount) {
         // For new accounts, wait for email retrieval
         try {
-          await this.userHelpers.retrieveEmailByLabels(email);
+          // await this.userHelpers.retrieveEmailByLabels(email);
           await this.userHelpers.retrieve30daysEmail(email);
           await this.sleep(5000);
         } catch (error) {
@@ -257,9 +257,9 @@ export class AuthService {
         }
       } else {
         // For existing accounts, run in background
-        this.userHelpers.retrieveEmailByLabels(email).catch((error) => {
-          console.error('Error retrieving emails by labels:', error);
-        });
+        // this.userHelpers.retrieveEmailByLabels(email).catch((error) => {
+        //   console.error('Error retrieving emails by labels:', error);
+        // });
         this.userHelpers.retrieve30daysEmail(email).catch((error) => {
           console.error('Error retrieving 30 days emails:', error);
         });

@@ -44,6 +44,7 @@ Melify uses the Gmail API to read and process emails securely. This guide will w
    - `https://mail.google.com/`
    - `https://www.googleapis.com/auth/userinfo.email`
    - `https://www.googleapis.com/auth/userinfo.profile`
+   - `https://www.googleapis.com/auth/calendar.readonly`
 8. Click "Update" and then "Save and Continue"
 9. Add your email in test users to be able to use it in Melify platform
 10. Review and click "Back to Dashboard"

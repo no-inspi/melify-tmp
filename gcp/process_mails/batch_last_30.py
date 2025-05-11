@@ -3,12 +3,16 @@ from datetime import datetime, timedelta
 import functions_framework
 import time
 import sentry_sdk
+import chromadb
+
 from constants import CATEGORIES, PROMPT_CATEGORIES, INSTRUCTIONS_TEMPLATE, INSTRUCTIONS_WITH_CONTEXT_TEMPLATE
 from config import load_config
 from user_utils import get_user_by_email
-from google_utils import setup_gmail_service
+from google_utils import setup_gmail_service, setup_calendar_service
 from db_manager import MongoDBConnectionManager
 from email_processor import fetch_email
+from chromadb_utils import insert_email_to_chromadb
+from calendar_utils import get_event_invitation_status, get_event_id
 
 
 # Initialize Sentry for error tracking
@@ -22,6 +26,8 @@ def init_sentry():
 API_KEY_MISTRAL = os.environ.get('API_KEY_MISTRAL')
         
 init_sentry()
+
+chroma_client = chromadb.PersistentClient(path="/tmp/chroma_db")
 
 @functions_framework.http
 def batch_last_30_days(request):
@@ -64,6 +70,8 @@ def batch_last_30_days(request):
                 gmail_service, 
                 user_email, 
                 db, 
+                existing_account,
+                config,
                 days=15
             )
             return {
@@ -94,7 +102,7 @@ def update_categories_from_user(user):
     # Update the PROMPT_CATEGORIES string with descriptions
     PROMPT_CATEGORIES = "\n" + "\n".join(category_descriptions) + "\n"
     
-def process_recent_emails(gmail_service, user_email, db, days=30, batch_size=10):
+def process_recent_emails(gmail_service, user_email, db, existing_account, config, days=30, batch_size=10 ):
     """
     Process emails from the recent past.
     
@@ -128,12 +136,29 @@ def process_recent_emails(gmail_service, user_email, db, days=30, batch_size=10)
             
             # Process email
             email_data = fetch_email(gmail_service, user_email, message['id'], db, INSTRUCTIONS_WITH_CONTEXT_TEMPLATE, INSTRUCTIONS_TEMPLATE, PROMPT_CATEGORIES, API_KEY_MISTRAL, CATEGORIES)
-
+            insert_email_to_chromadb(
+                email_data['from'],
+                email_data['to'],
+                email_data['subject'],
+                email_data['date'],
+                email_data['html'],
+            )
+            
             # Store email data
             if email_data:
+                print(f"Processing email: {email_data['isGoogleInvitation']}")
+                if email_data.get('isGoogleInvitation') == True:
+                    calendar_service = setup_calendar_service(db, existing_account, config)
+                    status = get_event_invitation_status(calendar_service, email_data.get('attachments', [])[0])
+                    event_id = get_event_id(email_data.get('attachments', [])[0])
+                    print(f"Invitation status: {status}")
+                    email_data['invitationStatus'] = status
+                    email_data['eventId'] = event_id
+                    
                 current_time = datetime.now()
                 email_data['createdAt'] = current_time
                 email_data['updatedAt'] = current_time
+                
                 
                 db.emails.insert_one(email_data)
                 emails_inserted += 1

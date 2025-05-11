@@ -27,7 +27,7 @@ const CLIENT_ID = CONFIG.site.googleclientid;
 const REDIRECT_URI = `${CONFIG.site.serverUrl}/api/auth/googleredirect`;
 
 const SCOPES = encodeURIComponent(
-  'profile email https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.modify'
+  'profile email https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.modify https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events'
 );
 
 // Generate auth URL with state for normal login

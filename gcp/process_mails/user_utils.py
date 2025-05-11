@@ -9,9 +9,7 @@ def get_user_by_email(email, db):
     if not existing_account:
         print(f"No account found for email: {email}")
         return None
-    
-    print(f"Existing account: {existing_account}")
-    
+        
     # Make sure the account has a userId field
     if 'userId' not in existing_account:
         print(f"Account doesn't have userId field: {existing_account}")

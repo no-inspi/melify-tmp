@@ -3,6 +3,7 @@ from datetime import datetime
 from batch_last_30 import batch_last_30_days
 from retrieve_email_by_labels import retrieve_email_by_labels
 from transform_email import transform_email
+from retrieve_calendar_events import batch_calendar_events
 
 def health_check(request):
     if request.method == 'GET' and request.args.get('health') == 'check':
@@ -39,3 +40,11 @@ def transform_email_entry_point(request):
         return health_check_result
     else:
         return transform_email(request)
+    
+def retrieve_calendar_events_entry_point(request):
+    health_check_result = health_check(request)
+    
+    if health_check_result != False:
+        return health_check_result
+    else:
+        return batch_calendar_events(request)

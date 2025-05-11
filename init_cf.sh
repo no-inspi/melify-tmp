@@ -31,6 +31,31 @@ set -a  # automatically export all variables
 source "$ENV_FILE"
 set +a  # stop automatically exporting
 
+# Install ChromaDB if not already installed
+echo -e "${YELLOW}Checking if ChromaDB is installed...${NC}"
+if ! python3 -c "import chromadb" &> /dev/null; then
+    echo -e "${YELLOW}Installing ChromaDB...${NC}"
+    pip3 install chromadb
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}ChromaDB installed successfully${NC}"
+    else
+        echo -e "${RED}Failed to install ChromaDB. Please install it manually with 'pip install chromadb'${NC}"
+        exit 1
+    fi
+else
+    echo -e "${GREEN}ChromaDB is already installed${NC}"
+fi
+
+# Execute the ChromaDB setup script
+echo -e "${YELLOW}Setting up ChromaDB...${NC}"
+python3 "${BASE_DIR}/process_mails/chromadb/setup_chromadb.py"
+if [ $? -eq 0 ]; then
+    echo -e "${GREEN}ChromaDB setup completed successfully${NC}\n"
+else
+    echo -e "${RED}ChromaDB setup failed. Check the errors above.${NC}\n"
+    exit 1
+fi
+
 # Function to start a cloud function in the background
 run_function() {
     local function_dir="$1"
@@ -64,6 +89,7 @@ rm -f running_pids.txt
 run_function "process_mails" "last_30_days" "8082"
 run_function "process_mails" "retrieve_email_by_labels_entry_point" "8083" 
 run_function "transform_email" "transform_email_entry_point" "8084" 
+run_function "retrieve_calendar_events" "retrieve_calendar_events_entry_point" "8085" 
 
 echo -e "\n${GREEN}All functions are now running in the background${NC}"
 echo -e "${BLUE}Function logs are being saved to respective log files${NC}"
@@ -71,6 +97,7 @@ echo -e "${BLUE}To access a function, use the following URLs:${NC}"
 echo -e "  - last_30_days: ${GREEN}http://localhost:8082${NC}"
 echo -e "  - retrieve_email_by_labels_entry_point: ${GREEN}http://localhost:8083${NC}"
 echo -e "  - transform_email_entry_point: ${GREEN}http://localhost:8084${NC}"
+echo -e "  - retrieve_calendar_events_entry_point: ${GREEN}http://localhost:8085${NC}"
 
 # Display active environment variables (for debugging)
 echo -e "\n${BLUE}Active environment variables:${NC}"

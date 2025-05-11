@@ -11,6 +11,7 @@ import { AdminModule } from './admin/admin.module';
 import { DraftsModule } from './drafts/drafts.module';
 import { ChatModule } from './chat/chat.module';
 import { TiptapModule } from './tiptap/tiptap.module';
+import { CalendarModule } from './calendar/calendar.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { TiptapModule } from './tiptap/tiptap.module';
     DraftsModule,
     ChatModule,
     TiptapModule,
+    CalendarModule,
   ],
   controllers: [AppController],
   providers: [AppService],

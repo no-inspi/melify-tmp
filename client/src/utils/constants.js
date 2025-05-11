@@ -25,4 +25,13 @@ export const cloud_functions = [
     lastChecked: null,
     error: null,
   },
+  {
+    name: 'Calendar Events',
+    url:
+      process.env.NEXT_PUBLIC_RETRIEVE_CALENDAR_URL ||
+      'http://127.0.0.1:8085/retrieve_calendar_events_entry_point?health=check',
+    status: 'loading',
+    lastChecked: null,
+    error: null,
+  },
 ];

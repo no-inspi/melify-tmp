@@ -77,6 +77,12 @@ export class Email extends Document {
 
   @Prop()
   initialCategory: string;
+
+  @Prop()
+  isGoogleInvitation: boolean;
+
+  @Prop()
+  invitationStatus: string;
 }
 
 export const EmailSchema = SchemaFactory.createForClass(Email);

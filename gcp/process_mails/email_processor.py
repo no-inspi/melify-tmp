@@ -2,7 +2,7 @@ import sentry_sdk
 import requests
 
 from utils import decode_email_body, clean_email_text, truncate_text, count_tokens, parse_mistral_response, convert_to_iso8601_utc
-
+from calendar_utils import is_calendar_invitation
 
 TOKEN_LIMIT = 30000
 
@@ -310,6 +310,7 @@ def build_message_details(message, message_id, headers, decoded_body, category_o
         "html": decoded_body.get("html", ""),
         "text": decoded_body.get("text", ""),
         "summary": category_obj.get("summary", ""),
+        "isGoogleInvitation": is_calendar_invitation(message),
         "userCategory": "",
         "generatedCategory": category_obj.get('category', "Other"),
         "mistralOutputText": category_obj.get("text", ""),

@@ -256,6 +256,9 @@ export const endpoints = {
     deletedraft: '/api/drafts/deleteDraft',
     singleAttachment: '/api/mails/attachment',
   },
+  calendar: {
+    updateEventStatus: '/api/calendar/updateEventStatus',
+  },
   drafts: {
     createdraft: 'api/drafts',
     draft: 'api/drafts',

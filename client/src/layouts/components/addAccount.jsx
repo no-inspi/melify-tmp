@@ -14,7 +14,7 @@ export function AddAccountButton() {
     const CLIENT_ID = CONFIG.site.googleclientid;
     const REDIRECT_URI = `${CONFIG.site.serverUrl}/api/auth/googleredirect`;
     const SCOPES = encodeURIComponent(
-      'profile email https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.modify'
+      'profile email https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.modify https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events'
     );
 
     // Create state object with isAddingAccount flag and current user ID
